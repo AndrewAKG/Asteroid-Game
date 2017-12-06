@@ -323,8 +323,8 @@ void myReshape(int w, int h)
 void LoadAssets()
 {
 	//// Loading Model files
-	model_house.Load("Models/house/house.3DS");
-	model_tree.Load("Models/tree/Tree1.3ds");
+	/*model_house.Load("Models/house/house.3DS");
+	model_tree.Load("Models/tree/Tree1.3ds");*/
     model_plane.Load("Models/pwgo6lkvoe0w-Hot_Air_Balloon_Iridesium/Hot Air Balloon Iridesium/Air_Balloon.3ds");
 
 	// Loading texture files
