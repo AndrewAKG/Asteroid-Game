@@ -43,6 +43,7 @@ int cameraZoom = 0;
 Model_3DS model_house;
 Model_3DS model_tree;
 Model_3DS model_plane;
+Model_3DS model_plane2;
 
 // Textures
 GLTexture tex_ground;
@@ -177,7 +178,7 @@ void myDisplay(void)
 
 
 	GLfloat lightIntensity[] = { 0.7, 0.7, 0.7, 1.0f };
-	GLfloat lightPosition[] = {0.0f, 100.0f, 0.0f, 0.0f };
+	GLfloat lightPosition[] = { 0.0f, 100.0f, 0.0f, 0.0f };
 	glLightfv(GL_LIGHT0, GL_POSITION, lightPosition);
 	glLightfv(GL_LIGHT0, GL_AMBIENT, lightIntensity);
 
@@ -188,14 +189,14 @@ void myDisplay(void)
 	//glPushMatrix();
 	//glTranslatef(10, 0, 0);
 	//glScalef(0.7, 0.7, 0.7);
-	////model_tree.Draw();
+	//model_tree.Draw();
 	//glPopMatrix();
 
-	// Draw house Model
-	/*glPushMatrix();
-	glRotatef(90.f, 1, 0, 0);
-	model_house.Draw();
-	glPopMatrix();*/
+	//// Draw house Model
+	//glPushMatrix();
+	//glRotatef(90.f, 1, 0, 0);
+	//model_house.Draw();
+	//glPopMatrix();
 
 	glPushMatrix();
 	glTranslatef(10, 0, 0);
@@ -203,25 +204,33 @@ void myDisplay(void)
 	model_plane.Draw();
 	glPopMatrix();
 
+	glPushMatrix();
+	glTranslatef(10, 0, 0);
+	glScalef(0.05, 0.05, 0.05);
+	glRotated(15, 1, 0, 0);
+	glRotated(30, 0, 1, 0);
+	model_plane2.Draw();
+	glPopMatrix();
 
-//sky box
+
+	//sky box
 	glPushMatrix();
 
 	GLUquadricObj * qobj;
 	qobj = gluNewQuadric();
-	glTranslated(50,0,0);
-	glRotated(90,1,0,1);
+	glTranslated(50, 0, 0);
+	glRotated(90, 1, 0, 1);
 	glBindTexture(GL_TEXTURE_2D, tex);
-	gluQuadricTexture(qobj,true);
-	gluQuadricNormals(qobj,GL_SMOOTH);
-	gluSphere(qobj,100,100,100);
+	gluQuadricTexture(qobj, true);
+	gluQuadricNormals(qobj, GL_SMOOTH);
+	gluSphere(qobj, 100, 100, 100);
 	gluDeleteQuadric(qobj);
-	
-	
+
+
 	glPopMatrix();
-	
-	
-	
+
+
+
 	glutSwapBuffers();
 }
 
@@ -322,12 +331,13 @@ void myReshape(int w, int h)
 //=======================================================================
 void LoadAssets()
 {
-	//// Loading Model files
+	//Loading Model files
 	model_house.Load("Models/house/house.3DS");
 	model_tree.Load("Models/tree/Tree1.3ds");
-    model_plane.Load("Models/pwgo6lkvoe0w-Hot_Air_Balloon_Iridesium/Hot Air Balloon Iridesium/Air_Balloon.3ds");
+	model_plane2.Load("Models/plane1/plane1.3ds");
+	model_plane.Load("Models/pwgo6lkvoe0w-Hot_Air_Balloon_Iridesium/Hot Air Balloon Iridesium/Air_Balloon.3ds");
 
-	// Loading texture files
+	//Loading texture files
 	tex_ground.Load("textures/ground.bmp");
 	loadBMP(&tex, "textures/sky4-jpg.bmp", true);
 }
@@ -360,7 +370,7 @@ void main(int argc, char** argv)
 	myInit();
 
 	LoadAssets();
-		glEnable(GL_DEPTH_TEST);
+	glEnable(GL_DEPTH_TEST);
 	glEnable(GL_LIGHTING);
 	glEnable(GL_LIGHT0);
 	glEnable(GL_NORMALIZE);
