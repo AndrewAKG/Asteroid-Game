@@ -1,0 +1,31 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 15
+VisualStudioVersion = 15.0.26730.16
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Asteroid-Game", "Asteroid-Game\Asteroid-Game.vcxproj", "{611B6685-D4D8-4A35-820B-53152298E3BD}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|x64 = Debug|x64
+		Debug|x86 = Debug|x86
+		Release|x64 = Release|x64
+		Release|x86 = Release|x86
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{611B6685-D4D8-4A35-820B-53152298E3BD}.Debug|x64.ActiveCfg = Debug|x64
+		{611B6685-D4D8-4A35-820B-53152298E3BD}.Debug|x64.Build.0 = Debug|x64
+		{611B6685-D4D8-4A35-820B-53152298E3BD}.Debug|x86.ActiveCfg = Debug|Win32
+		{611B6685-D4D8-4A35-820B-53152298E3BD}.Debug|x86.Build.0 = Debug|Win32
+		{611B6685-D4D8-4A35-820B-53152298E3BD}.Release|x64.ActiveCfg = Release|x64
+		{611B6685-D4D8-4A35-820B-53152298E3BD}.Release|x64.Build.0 = Release|x64
+		{611B6685-D4D8-4A35-820B-53152298E3BD}.Release|x86.ActiveCfg = Release|Win32
+		{611B6685-D4D8-4A35-820B-53152298E3BD}.Release|x86.Build.0 = Release|Win32
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {1B673381-F6EC-4F01-9C19-D86661273A15}
+	EndGlobalSection
+EndGlobal
