@@ -4,6 +4,7 @@
 #include <glut.h>
 #include <cmath>
 
+
 int WIDTH = 1000;
 int HEIGHT = 700;
 
