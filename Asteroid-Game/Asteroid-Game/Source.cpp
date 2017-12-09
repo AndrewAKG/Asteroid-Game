@@ -2,9 +2,25 @@
 #include "Model_3DS.h"
 #include "GLTexture.h"
 #include <glut.h>
+#include <cmath>
 
-int WIDTH = 1280;
-int HEIGHT = 720;
+int WIDTH = 1000;
+int HEIGHT = 700;
+
+#define DEG2RAD(a) (a * 0.0174532925)
+
+//Camera controller variables
+float cameraRadius = 15;
+float cameraAngle = 90.0;
+bool camera360 = false;
+float camy = 0.03;
+
+//Plane Controller variables
+float planeX = 0.0;
+float planeY = 0.0;
+float planeAngX = 0.0;
+float planeAngY = 0.0;
+float planeAngZ = 0.0;
 
 GLuint tex;
 char title[] = "3D Model Loader Sample";
@@ -14,28 +30,6 @@ GLdouble fovy = 45.0;
 GLdouble aspectRatio = (GLdouble)WIDTH / (GLdouble)HEIGHT;
 GLdouble zNear = 0.1;
 GLdouble zFar = 100;
-
-class Vector
-{
-public:
-	GLdouble x, y, z;
-	Vector() {}
-	Vector(GLdouble _x, GLdouble _y, GLdouble _z) : x(_x), y(_y), z(_z) {}
-	//================================================================================================//
-	// Operator Overloading; In C++ you can override the behavior of operators for you class objects. //
-	// Here we are overloading the += operator to add a given value to all vector coordinates.        //
-	//================================================================================================//
-	void operator +=(float value)
-	{
-		x += value;
-		y += value;
-		z += value;
-	}
-};
-
-Vector Eye(20, 5, 20);
-Vector At(0, 0, 0);
-Vector Up(0, 1, 0);
 
 int cameraZoom = 0;
 
@@ -47,6 +41,152 @@ Model_3DS model_plane2;
 
 // Textures
 GLTexture tex_ground;
+
+class Vector3f {
+public:
+	float x, y, z;
+
+	Vector3f(float _x = 0.0f, float _y = 0.0f, float _z = 0.0f) {
+		x = _x;
+		y = _y;
+		z = _z;
+	}
+
+	Vector3f operator+(Vector3f &v) {
+		return Vector3f(x + v.x, y + v.y, z + v.z);
+	}
+
+	Vector3f operator-(Vector3f &v) {
+		return Vector3f(x - v.x, y - v.y, z - v.z);
+	}
+
+	Vector3f operator*(float n) {
+		return Vector3f(x * n, y * n, z * n);
+	}
+
+	Vector3f operator/(float n) {
+		return Vector3f(x / n, y / n, z / n);
+	}
+
+	Vector3f unit() {
+		return *this / sqrt(x * x + y * y + z * z);
+	}
+
+	Vector3f cross(Vector3f v) {
+		return Vector3f(y * v.z - z * v.y, z * v.x - x * v.z, x * v.y - y * v.x);
+	}
+};
+
+class Camera {
+public:
+	Vector3f eye, center, up;
+
+	Camera(float eyeX = 0.0f, float eyeY = 0.0f, float eyeZ = 15.0f, float centerX = 0.0f, float centerY = 0.0f, float centerZ = 0.0f, float upX = 0.0f, float upY = 1.0f, float upZ = 0.0f) {
+		eye = Vector3f(eyeX, eyeY, eyeZ);
+		center = Vector3f(centerX, centerY, centerZ);
+		up = Vector3f(upX, upY, upZ);
+	}
+
+	void sideView() {
+		eye.x = 1.0;
+		eye.y = 0.0;
+		eye.z = 0.0;
+	}
+
+	void frontView() {
+		eye.x = 0.0;
+		eye.y = 0.0;
+		eye.z = 1.0;
+	}
+
+	void topView() {
+		eye.x = 0.0;
+		eye.y = 0.6;
+		eye.z = 0.8;
+	}
+
+	void look() {
+		if (camera360) {
+			eye.x = cameraRadius* cos(DEG2RAD(cameraAngle));
+			eye.y = camy;
+			eye.z = cameraRadius* sin(DEG2RAD(cameraAngle));
+		}
+		gluLookAt(
+			eye.x, eye.y, eye.z,
+			center.x, center.y, center.z,
+			up.x, up.y, up.z
+		);
+	}
+};
+
+Camera camera;
+
+float* bezier(float t, float* p0, float* p1, float* p2, float* p3)
+{
+	float res[2];
+	res[0] = pow((1 - t), 3)*p0[0] + 3 * t*pow((1 - t), 2)*p1[0] + 3 * pow(t, 2)*(1 - t)*p2[0] + pow(t, 3)*p3[0];
+	res[1] = pow((1 - t), 3)*p0[1] + 3 * t*pow((1 - t), 2)*p1[1] + 3 * pow(t, 2)*(1 - t)*p2[1] + pow(t, 3)*p3[1];
+	return res;
+}
+
+//=======================================================================
+// Keyboard Function
+//=======================================================================
+void Keyboard(unsigned char key, int x, int y) {
+
+	switch (key) {
+	case 'f':
+		camera.frontView();
+		break;
+	case 's':
+		camera.sideView();
+		break;
+	case 't':
+		camera.topView();
+		break;
+	case 'r':
+		camera360 = !camera360;
+		break;
+	}
+	glutPostRedisplay();
+}
+
+void Special(int key, int x, int y) {
+
+	switch (key) {
+	case GLUT_KEY_LEFT:
+		planeX -= 0.1;
+		planeAngY += 0.1;
+		planeAngZ += 0.5;
+		break;
+	case GLUT_KEY_RIGHT:
+		planeX += 0.1;
+		planeAngY -= 0.1;
+		planeAngZ -= 0.5;
+		break;
+	case GLUT_KEY_UP:
+		planeY += 0.1;
+		planeAngX += 0.5;
+		break;
+	case GLUT_KEY_DOWN:
+		planeY -= 0.1;
+		planeAngX -= 0.5;
+		break;
+	}
+
+	glutPostRedisplay();
+}
+
+void setupCamera() {
+	glMatrixMode(GL_PROJECTION);
+	glLoadIdentity();
+	gluPerspective(100, 1000 / 700, 0.001, 100);
+	//	glOrtho(-500, 500, -350, 350, -800, 800);
+
+	glMatrixMode(GL_MODELVIEW);
+	glLoadIdentity();
+	camera.look();
+}
 
 //=======================================================================
 // Lighting Configuration Function
@@ -98,74 +238,14 @@ void InitMaterial()
 	glMaterialfv(GL_FRONT, GL_SHININESS, shininess);
 }
 
-//=======================================================================
-// OpengGL Configuration Function
-//=======================================================================
-void myInit(void)
-{
-	glClearColor(0.0, 0.0, 0.0, 0.0);
+void Timer(int value) {
+	/************************CAMERA ANIMATION***************************/
+	if (camera360) {
+		cameraAngle++;
+	}
 
-	glMatrixMode(GL_PROJECTION);
-
-	glLoadIdentity();
-
-	gluPerspective(fovy, aspectRatio, zNear, zFar);
-	//*******************************************************************************************//
-	// fovy:			Angle between the bottom and top of the projectors, in degrees.			 //
-	// aspectRatio:		Ratio of width to height of the clipping plane.							 //
-	// zNear and zFar:	Specify the front and back clipping planes distances from camera.		 //
-	//*******************************************************************************************//
-
-	glMatrixMode(GL_MODELVIEW);
-
-	glLoadIdentity();
-
-	gluLookAt(Eye.x, Eye.y, Eye.z, At.x, At.y, At.z, Up.x, Up.y, Up.z);
-	//*******************************************************************************************//
-	// EYE (ex, ey, ez): defines the location of the camera.									 //
-	// AT (ax, ay, az):	 denotes the direction where the camera is aiming at.					 //
-	// UP (ux, uy, uz):  denotes the upward orientation of the camera.							 //
-	//*******************************************************************************************//
-
-	InitLightSource();
-
-	InitMaterial();
-
-	glEnable(GL_DEPTH_TEST);
-
-	glEnable(GL_NORMALIZE);
-}
-
-//=======================================================================
-// Render Ground Function
-//=======================================================================
-void RenderGround()
-{
-	glDisable(GL_LIGHTING);	// Disable lighting 
-
-	glColor3f(0.6, 0.6, 0.6);	// Dim the ground texture a bit
-
-	glEnable(GL_TEXTURE_2D);	// Enable 2D texturing
-
-	glBindTexture(GL_TEXTURE_2D, tex_ground.texture[0]);	// Bind the ground texture
-
-	glPushMatrix();
-	glBegin(GL_QUADS);
-	glNormal3f(0, 1, 0);	// Set quad normal direction.
-	glTexCoord2f(0, 0);		// Set tex coordinates ( Using (0,0) -> (5,5) with texture wrapping set to GL_REPEAT to simulate the ground repeated grass texture).
-	glVertex3f(-20, 0, -20);
-	glTexCoord2f(5, 0);
-	glVertex3f(20, 0, -20);
-	glTexCoord2f(5, 5);
-	glVertex3f(20, 0, 20);
-	glTexCoord2f(0, 5);
-	glVertex3f(-20, 0, 20);
-	glEnd();
-	glPopMatrix();
-
-	glEnable(GL_LIGHTING);	// Enable lighting again for other entites coming throung the pipeline.
-
-	glColor3f(1, 1, 1);	// Set material back to white instead of grey used for the ground texture.
+	glutPostRedisplay();
+	glutTimerFunc(10, Timer, 0);
 }
 
 //=======================================================================
@@ -173,42 +253,23 @@ void RenderGround()
 //=======================================================================
 void myDisplay(void)
 {
+	setupCamera();
+	InitLightSource();
+	//InitMaterial();
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-
-
-	GLfloat lightIntensity[] = { 0.7, 0.7, 0.7, 1.0f };
+	/*GLfloat lightIntensity[] = { 0.7, 0.7, 0.7, 1.0f };
 	GLfloat lightPosition[] = { 0.0f, 100.0f, 0.0f, 0.0f };
 	glLightfv(GL_LIGHT0, GL_POSITION, lightPosition);
-	glLightfv(GL_LIGHT0, GL_AMBIENT, lightIntensity);
-
-	// Draw Ground
-	//RenderGround();
-
-	//// Draw Tree Model
-	//glPushMatrix();
-	//glTranslatef(10, 0, 0);
-	//glScalef(0.7, 0.7, 0.7);
-	//model_tree.Draw();
-	//glPopMatrix();
-
-	//// Draw house Model
-	//glPushMatrix();
-	//glRotatef(90.f, 1, 0, 0);
-	//model_house.Draw();
-	//glPopMatrix();
+	glLightfv(GL_LIGHT0, GL_AMBIENT, lightIntensity);*/
 
 	glPushMatrix();
-	glTranslatef(10, 0, 0);
-	glScalef(0.1, 0.1, 0.1);
-	model_plane.Draw();
-	glPopMatrix();
-
-	glPushMatrix();
-	glTranslatef(10, 0, 0);
-	glScalef(0.05, 0.05, 0.05);
-	glRotated(15, 1, 0, 0);
-	glRotated(30, 0, 1, 0);
+	glTranslated(planeX, planeY, 0);
+	glRotated(planeAngX, 1, 0, 1);
+	glRotated(planeAngY, 0, 1, 0);
+	glRotated(planeAngZ, 0, 0, 1);
+	glTranslatef(0, -3, 10);
+	glScalef(0.016, 0.016, 0.016);
 	model_plane2.Draw();
 	glPopMatrix();
 
@@ -218,112 +279,17 @@ void myDisplay(void)
 
 	GLUquadricObj * qobj;
 	qobj = gluNewQuadric();
-	glTranslated(50, 0, 0);
+	//glTranslated(50, 0, 0);
 	glRotated(90, 1, 0, 1);
 	glBindTexture(GL_TEXTURE_2D, tex);
 	gluQuadricTexture(qobj, true);
 	gluQuadricNormals(qobj, GL_SMOOTH);
-	gluSphere(qobj, 100, 100, 100);
+	gluSphere(qobj, 80, 100, 100);
 	gluDeleteQuadric(qobj);
-
 
 	glPopMatrix();
 
-
-
 	glutSwapBuffers();
-}
-
-//=======================================================================
-// Keyboard Function
-//=======================================================================
-void myKeyboard(unsigned char button, int x, int y)
-{
-	switch (button)
-	{
-	case 'w':
-		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-		break;
-	case 'r':
-		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-		break;
-	case 27:
-		exit(0);
-		break;
-	default:
-		break;
-	}
-
-	glutPostRedisplay();
-}
-
-//=======================================================================
-// Motion Function
-//=======================================================================
-void myMotion(int x, int y)
-{
-	y = HEIGHT - y;
-
-	if (cameraZoom - y > 0)
-	{
-		Eye.x += -0.1;
-		Eye.z += -0.1;
-	}
-	else
-	{
-		Eye.x += 0.1;
-		Eye.z += 0.1;
-	}
-
-	cameraZoom = y;
-
-	glLoadIdentity();	//Clear Model_View Matrix
-
-	gluLookAt(Eye.x, Eye.y, Eye.z, At.x, At.y, At.z, Up.x, Up.y, Up.z);	//Setup Camera with modified paramters
-
-	GLfloat light_position[] = { 0.0f, 10.0f, 0.0f, 1.0f };
-	glLightfv(GL_LIGHT0, GL_POSITION, light_position);
-
-	glutPostRedisplay();	//Re-draw scene 
-}
-
-//=======================================================================
-// Mouse Function
-//=======================================================================
-void myMouse(int button, int state, int x, int y)
-{
-	y = HEIGHT - y;
-
-	if (state == GLUT_DOWN)
-	{
-		cameraZoom = y;
-	}
-}
-
-//=======================================================================
-// Reshape Function
-//=======================================================================
-void myReshape(int w, int h)
-{
-	if (h == 0) {
-		h = 1;
-	}
-
-	WIDTH = w;
-	HEIGHT = h;
-
-	// set the drawable region of the window
-	glViewport(0, 0, w, h);
-
-	// set up the projection matrix 
-	glMatrixMode(GL_PROJECTION);
-	glLoadIdentity();
-	gluPerspective(fovy, (GLdouble)WIDTH / (GLdouble)HEIGHT, zNear, zFar);
-
-	// go back to modelview matrix so we can move the objects about
-	glMatrixMode(GL_MODELVIEW);
-	glLoadIdentity();
-	gluLookAt(Eye.x, Eye.y, Eye.z, At.x, At.y, At.z, Up.x, Up.y, Up.z);
 }
 
 //=======================================================================
@@ -333,13 +299,10 @@ void LoadAssets()
 {
 
 	//Loading Model files
-	//model_tree.Load("Models/tree/Tree1.3ds");
 	model_plane2.Load("Models/plane2/plane2.3ds");
-	//model_plane.Load("Models/pwgo6lkvoe0w-Hot_Air_Balloon_Iridesium/Hot Air Balloon Iridesium/Air_Balloon.3ds");
 
 	//Loading texture files
-	tex_ground.Load("textures/ground.bmp");
-	loadBMP(&tex, "textures/sky4-jpg.bmp", true);
+	loadBMP(&tex, "textures/space.bmp", true);
 }
 
 //=======================================================================
@@ -353,21 +316,19 @@ void main(int argc, char** argv)
 
 	glutInitWindowSize(WIDTH, HEIGHT);
 
-	glutInitWindowPosition(100, 150);
+	glutInitWindowPosition(200, 100);
 
 	glutCreateWindow(title);
 
 	glutDisplayFunc(myDisplay);
 
-	glutKeyboardFunc(myKeyboard);
+	glutKeyboardFunc(Keyboard);
 
-	glutMotionFunc(myMotion);
+	glutSpecialFunc(Special);
 
-	glutMouseFunc(myMouse);
+	glutTimerFunc(0, Timer, 0);
 
-	glutReshapeFunc(myReshape);
-
-	myInit();
+	glClearColor(1.0f, 1.0f, 1.0f, 0.0f);
 
 	LoadAssets();
 	glEnable(GL_DEPTH_TEST);
