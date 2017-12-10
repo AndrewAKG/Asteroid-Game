@@ -39,6 +39,7 @@ Model_3DS model_house;
 Model_3DS model_tree;
 Model_3DS model_plane;
 Model_3DS model_plane2;
+Model_3DS shield;
 
 // Textures
 GLTexture tex_ground;
@@ -274,6 +275,12 @@ void myDisplay(void)
 	model_plane2.Draw();
 	glPopMatrix();
 
+	glPushMatrix();
+	glScalef(4, 4, 4);
+	glRotatef(90, 1,0, 0);
+	shield.Draw();
+	glPopMatrix();
+
 
 	//sky box
 	glPushMatrix();
@@ -301,6 +308,7 @@ void LoadAssets()
 
 	//Loading Model files
 	model_plane2.Load("Models/plane2/plane2.3ds");
+	shield.Load("Models/shield/shield2/CaptainAmericasShield.3ds");
 
 	//Loading texture files
 	loadBMP(&tex, "textures/space.bmp", true);
