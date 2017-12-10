@@ -305,15 +305,20 @@ void Anim() {
 	// x = 12.06 -> 0.36 3ard = 1.2
 	// y = 7.63 -> 0.228 ertfa3 = 0.7
 	// z = 7.47 -> 0.22  tool = 0.68
+
 	if (
 		((-0.6 + a1x >= planeX - 1.5  && -0.6 + a1x <= planeX + 1.5) || (0.6 + a1x >= planeX - 1.5 && 0.6 + a1x <= planeX + 1.5))
 		&&
-		((-0.35 + a1y >= planeY + -3.3 && -0.35 + a1y <= planeY - 2.7) || (0.35 + a1y >= planeY + -3.3 && 0.35 + a1y <= planeY - 2.7))
+		((-5.1 + a1y >= planeY - 3.3 && -5.1 + a1y <= planeY - 2.7) || (-4.8 + a1y >= planeY - 3.3 && -4.8 + a1y <= planeY - 2.7))
 		&&
 		((-0.34 + a1z >= 8.25 && -0.34 + a1z <= 11.75) || (0.34 + a1z >= 8.25 && 0.34 + a1z <= 11.75))
 		)
 	{
-		asteroid1 = false;
+		printf("%f\n", -5.1 + a1y);
+		printf("%f\n", -4.8 + a1y);
+		printf("%s\n", "d5l");
+		a1t = 0.0;
+		a1z = -20;
 	}
 
 }
@@ -329,11 +334,11 @@ void Timer(int value) {
 	if (seconds >= 100) {
 		asteroid1 = true;
 	}
-	if (asteroid1 == true) {
-		printf("%f\n", a1z);
+	if (asteroid1) {
+		//printf("%f\n", a1z);
 		if (a1z >= 20) {
 
-			printf("%s\n", "d5l");
+			//printf("%s\n", "d5l");
 			a1z = -20;
 		}
 		else
@@ -439,13 +444,15 @@ void myDisplay(void)
 	shield.Draw();
 	glPopMatrix();*/
 
-	//Asteroid
-	glPushMatrix();
-	glColor3f(1, 1, 1);
-	glTranslatef(a1x, a1y - 2.2, a1z);
-	glScalef(asteroidScale, asteroidScale, asteroidScale);
-	model_asteroid.Draw();
-	glPopMatrix();
+	//Asteroid 1
+	if (asteroid1) {
+		glPushMatrix();
+		glColor3f(1, 1, 1);
+		glTranslatef(a1x, a1y - 2.2, a1z);
+		glScalef(asteroidScale, asteroidScale, asteroidScale);
+		model_asteroid.Draw();
+		glPopMatrix();
+	}
 
 	glColor3f(1, 1, 1);
 
