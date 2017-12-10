@@ -19,6 +19,7 @@ float camy = 0.03;
 // Plane Controller variables
 float planeX = 0.0;
 float planeY = 0.0;
+
 float planeAngX = 0.0;
 float planeAngY = 0.0;
 float planeAngZ = 0.0;
@@ -102,24 +103,8 @@ public:
 		center = Vector3f(centerX, centerY, centerZ);
 		up = Vector3f(upX, upY, upZ);
 	}
+	void sideView() { eye.x = 15.0; 		eye.y = 0.0; 		eye.z = 0.0; }  	void frontView() { eye.x = 0.0; 		eye.y = 0.0; 		eye.z = 15.0; }  	void topView() { eye.x = 0.0; 		eye.y = 15.0; 		eye.z = 0.8; }
 
-	void sideView() {
-		eye.x = 15.0;
-		eye.y = 0.0;
-		eye.z = 0.0;
-	}
-
-	void frontView() {
-		eye.x = 0.0;
-		eye.y = 0.0;
-		eye.z = 15.0;
-	}
-
-	void topView() {
-		eye.x = 0.0;
-		eye.y = 15.0;
-		eye.z = 0.8;
-	}
 
 	void look() {
 		if (camera360) {
@@ -337,7 +322,6 @@ void Timer(int value) {
 	if (asteroid1) {
 		//printf("%f\n", a1z);
 		if (a1z >= 20) {
-
 			//printf("%s\n", "d5l");
 			a1z = -20;
 		}
