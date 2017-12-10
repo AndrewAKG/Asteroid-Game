@@ -40,7 +40,7 @@ Model_3DS model_tree;
 Model_3DS model_plane;
 Model_3DS model_plane2;
 Model_3DS shield;
-
+Model_3DS model_asteroid;
 // Textures
 GLTexture tex_ground;
 
@@ -281,6 +281,12 @@ void myDisplay(void)
 	shield.Draw();
 	glPopMatrix();
 
+	glPushMatrix();
+	glColor3f(1, 1, 0);
+	glTranslatef(-10, 10, 0);
+	glScalef(0.1, 0.1, 0.1);
+	model_asteroid.Draw();
+	glPopMatrix();
 
 	//sky box
 	glPushMatrix();
@@ -297,6 +303,7 @@ void myDisplay(void)
 
 	glPopMatrix();
 
+	glColor3f(1, 1, 1);
 	glutSwapBuffers();
 }
 
@@ -309,7 +316,7 @@ void LoadAssets()
 	//Loading Model files
 	model_plane2.Load("Models/plane2/plane2.3ds");
 	shield.Load("Models/shield/shield2/CaptainAmericasShield.3ds");
-
+	model_asteroid.Load("Models/asteroid-3DS.3DS");
 	//Loading texture files
 	loadBMP(&tex, "textures/space.bmp", true);
 }
