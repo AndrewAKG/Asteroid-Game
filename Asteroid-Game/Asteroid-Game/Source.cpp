@@ -32,12 +32,7 @@ GLdouble aspectRatio = (GLdouble)WIDTH / (GLdouble)HEIGHT;
 GLdouble zNear = 0.1;
 GLdouble zFar = 100;
 
-int cameraZoom = 0;
-
 //// Model Variables
-Model_3DS model_house;
-Model_3DS model_tree;
-Model_3DS model_plane;
 Model_3DS model_plane2;
 Model_3DS shield;
 Model_3DS model_asteroid;
@@ -132,6 +127,21 @@ float* bezier(float t, float* p0, float* p1, float* p2, float* p3)
 }
 
 //=======================================================================
+// Assets Loading Function
+//=======================================================================
+void LoadAssets()
+{
+
+	//Loading Model files
+	model_plane2.Load("Models/plane2/plane2.3ds");
+	shield.Load("Models/shield/shield2/CaptainAmericasShield.3ds");
+	model_asteroid.Load("Models/asteroid-3DS.3DS");
+
+	//Loading texture files
+	loadBMP(&tex, "textures/space3.bmp", true);
+}
+
+//=======================================================================
 // Keyboard Function
 //=======================================================================
 void Keyboard(unsigned char key, int x, int y) {
@@ -179,6 +189,9 @@ void Special(int key, int x, int y) {
 	glutPostRedisplay();
 }
 
+//=======================================================================
+// Camera setup function
+//=======================================================================
 void setupCamera() {
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
@@ -260,37 +273,8 @@ void myDisplay(void)
 	//InitMaterial();
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-	/*GLfloat lightIntensity[] = { 0.7, 0.7, 0.7, 1.0f };
-	GLfloat lightPosition[] = { 0.0f, 100.0f, 0.0f, 0.0f };
-	glLightfv(GL_LIGHT0, GL_POSITION, lightPosition);
-	glLightfv(GL_LIGHT0, GL_AMBIENT, lightIntensity);*/
-
+	//space box
 	glPushMatrix();
-	glTranslated(planeX, planeY, 0);
-	glRotated(planeAngX, 1, 0, 1);
-	glRotated(planeAngY, 0, 1, 0);
-	glRotated(planeAngZ, 0, 0, 1);
-	glTranslatef(0, -3, 10);
-	glScalef(0.016, 0.016, 0.016);
-	model_plane2.Draw();
-	glPopMatrix();
-
-	glPushMatrix();
-	glScalef(4, 4, 4);
-	glRotatef(90, 1,0, 0);
-	shield.Draw();
-	glPopMatrix();
-
-	glPushMatrix();
-	glColor3f(1, 1, 0);
-	glTranslatef(-10, 10, 0);
-	glScalef(0.1, 0.1, 0.1);
-	model_asteroid.Draw();
-	glPopMatrix();
-
-	//sky box
-	glPushMatrix();
-
 	GLUquadricObj * qobj;
 	qobj = gluNewQuadric();
 	//glTranslated(50, 0, 0);
@@ -303,23 +287,49 @@ void myDisplay(void)
 
 	glPopMatrix();
 
+	/*GLfloat lightIntensity[] = { 0.7, 0.7, 0.7, 1.0f };
+	GLfloat lightPosition[] = { 0.0f, 100.0f, 0.0f, 0.0f };
+	glLightfv(GL_LIGHT0, GL_POSITION, lightPosition);
+	glLightfv(GL_LIGHT0, GL_AMBIENT, lightIntensity);*/
+
+	// large plane model
+	glPushMatrix();
+	glTranslated(planeX, planeY, 0);
+	glRotated(planeAngX, 1, 0, 1);
+	glRotated(planeAngY, 0, 1, 0);
+	glRotated(planeAngZ, 0, 0, 1);
+	glTranslatef(0, -3, 10);
+	glScalef(0.016, 0.016, 0.016);
+	model_plane2.Draw();
+	glPopMatrix();
+
+	// life plane model
+	/*glPushMatrix();
+	glTranslatef(0, 0, 10);
+	glScalef(0.006, 0.006, 0.006);
+	model_plane2.Draw();
+	glPopMatrix();*/
+
+
+	// sheild
+	/*glPushMatrix();
+	glScalef(2, 2, 2);
+	glRotatef(90, 1, 0, 0);
+	shield.Draw();
+	glPopMatrix();*/
+
+
+	//Asteroid
+	glPushMatrix();
+	glScalef(0.1, 0.1, 0.1);
+	model_asteroid.Draw();
+	glPopMatrix();
+
 	glColor3f(1, 1, 1);
+
 	glutSwapBuffers();
 }
 
-//=======================================================================
-// Assets Loading Function
-//=======================================================================
-void LoadAssets()
-{
-
-	//Loading Model files
-	model_plane2.Load("Models/plane2/plane2.3ds");
-	shield.Load("Models/shield/shield2/CaptainAmericasShield.3ds");
-	model_asteroid.Load("Models/asteroid-3DS.3DS");
-	//Loading texture files
-	loadBMP(&tex, "textures/space.bmp", true);
-}
 
 //=======================================================================
 // Main Function
