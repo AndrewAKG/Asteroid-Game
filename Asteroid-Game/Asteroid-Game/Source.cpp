@@ -16,18 +16,28 @@ float cameraAngle = 90.0;
 bool camera360 = false;
 float camy = 0.03;
 
-//Plane Controller variables
+// Plane Controller variables
 float planeX = 0.0;
 float planeY = 0.0;
-
 float planeAngX = 0.0;
 float planeAngY = 0.0;
 float planeAngZ = 0.0;
 
-float asteroidZ = -20;
+// All asteroids controller variables
 float asteroidScale = 0.03;
-bool asteroid1 = false;
 float seconds = 0;
+
+// First asteroid controller variables
+bool asteroid1 = false;
+bool a1switch = false;
+float a1t = 0.0;
+float a1x = 0.0;
+float a1y = 0.0;
+float a1z = -20.0;
+float a10[2];
+float a11[2];
+float a12[2];
+float a13[2];
 
 GLuint tex;
 GLuint tex2;
@@ -92,8 +102,24 @@ public:
 		center = Vector3f(centerX, centerY, centerZ);
 		up = Vector3f(upX, upY, upZ);
 	}
-	void sideView() { eye.x = 15.0; 		eye.y = 0.0; 		eye.z = 0.0; }  	void frontView() { eye.x = 0.0; 		eye.y = 0.0; 		eye.z = 15.0; }  	void topView() { eye.x = 0.0; 		eye.y = 15.0; 		eye.z = 0.8; }
 
+	void sideView() {
+		eye.x = 15.0;
+		eye.y = 0.0;
+		eye.z = 0.0;
+	}
+
+	void frontView() {
+		eye.x = 0.0;
+		eye.y = 0.0;
+		eye.z = 15.0;
+	}
+
+	void topView() {
+		eye.x = 0.0;
+		eye.y = 15.0;
+		eye.z = 0.8;
+	}
 
 	void look() {
 		if (camera360) {
@@ -270,6 +296,28 @@ void InitMaterial()
 	glMaterialfv(GL_FRONT, GL_SHININESS, shininess);
 }
 
+void Anim() {
+	// object
+	// x = 99.14 -> 15.86 3ard = 3
+	// y = 68 -> 10.88 ertfa3 = 0.6
+	// z = 152.2 -> 24.4 tool = 3.5
+	// asteroid
+	// x = 12.06 -> 0.36 3ard = 1.2
+	// y = 7.63 -> 0.228 ertfa3 = 0.7
+	// z = 7.47 -> 0.22  tool = 0.68
+	if (
+		((-0.6 + a1x >= planeX - 1.5  && -0.6 + a1x <= planeX + 1.5) || (0.6 + a1x >= planeX - 1.5 && 0.6 + a1x <= planeX + 1.5))
+		&&
+		((-0.35 + a1y >= planeY + -3.3 && -0.35 + a1y <= planeY - 2.7) || (0.35 + a1y >= planeY + -3.3 && 0.35 + a1y <= planeY - 2.7))
+		&&
+		((-0.34 + a1z >= 8.25 && -0.34 + a1z <= 11.75) || (0.34 + a1z >= 8.25 && 0.34 + a1z <= 11.75))
+		)
+	{
+		asteroid1 = false;
+	}
+
+}
+
 void Timer(int value) {
 	seconds += 10;
 	/************************CAMERA ANIMATION***************************/
@@ -277,21 +325,30 @@ void Timer(int value) {
 		cameraAngle++;
 	}
 
+	/***********************FIRST ASTEROID ANIMATION**********************/
 	if (seconds >= 100) {
 		asteroid1 = true;
 	}
 	if (asteroid1 == true) {
-		printf("%f\n", asteroidZ);
-		if (asteroidZ >= 20) {
+		printf("%f\n", a1z);
+		if (a1z >= 20) {
 
 			printf("%s\n", "d5l");
-			asteroidZ = -20;
-
+			a1z = -20;
 		}
 		else
 		{
-		
-			asteroidZ += 0.05;
+			a1z += 0.05;
+			if (a1t >= 0.995) {
+				a1t = 0.0;
+			}
+			else {
+				a1t += 0.005;
+
+				float* b = bezier(a1t, a10, a11, a12, a13);
+				a1x = b[0];
+				a1y = b[1];
+			}
 		}
 	}
 
@@ -302,7 +359,7 @@ void Timer(int value) {
 void drawNitrous() {
 	glPushMatrix();
 	glColor3f(1, 1, 1);
-	glRotated(90, 1, 0, 0);
+	glRotated(90, 0, 1, 0);
 	qobj = gluNewQuadric();
 	glBindTexture(GL_TEXTURE_2D, tex2);
 	gluQuadricTexture(qobj, true);
@@ -356,7 +413,7 @@ void myDisplay(void)
 	// large plane model
 	glPushMatrix();
 	glTranslated(planeX, planeY, 0);
-	glRotated(planeAngX, 1, 0, 1);
+	glRotated(planeAngX, 1, 0, 0);
 	glRotated(planeAngY, 0, 1, 0);
 	glRotated(planeAngZ, 0, 0, 1);
 	glTranslatef(0, -3, 10);
@@ -385,7 +442,7 @@ void myDisplay(void)
 	//Asteroid
 	glPushMatrix();
 	glColor3f(1, 1, 1);
-	glTranslatef(0, -2.2, asteroidZ);
+	glTranslatef(a1x, a1y - 2.2, a1z);
 	glScalef(asteroidScale, asteroidScale, asteroidScale);
 	model_asteroid.Draw();
 	glPopMatrix();
@@ -416,6 +473,8 @@ void main(int argc, char** argv)
 
 	glutSpecialFunc(Special);
 
+	glutIdleFunc(Anim);
+
 	glutTimerFunc(0, Timer, 0);
 
 	glClearColor(1.0f, 1.0f, 1.0f, 0.0f);
@@ -428,6 +487,19 @@ void main(int argc, char** argv)
 	glEnable(GL_COLOR_MATERIAL);
 
 	glShadeModel(GL_SMOOTH);
+
+	// first asteroid bezier
+	a10[0] = 0.0;
+	a10[1] = 0.0;
+
+	a11[0] = -5.0;
+	a11[1] = 3.0;
+
+	a12[0] = 5.0;
+	a12[1] = 3.0;
+
+	a13[0] = 0.0;
+	a13[1] = 0.0;
 
 	glutMainLoop();
 }
