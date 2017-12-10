@@ -4,7 +4,6 @@
 #include <glut.h>
 #include <cmath>
 
-
 int WIDTH = 1000;
 int HEIGHT = 700;
 
@@ -39,13 +38,26 @@ float a11[2];
 float a12[2];
 float a13[2];
 
-//Second asteroid controller variables
+// Second asteroid controller variables
 bool asteroid2 = false;
 bool a2switch = false;
 float a2t = 0.0;
 float a2x = 0.0;
 float a2y = 0.0;
 float a2z = -20.0;
+
+// shield controller variables
+bool shield = false;
+float shz = -20.0;
+float shy = (rand() % 7) - 3;
+bool shieldActivated = false;
+float shieldCountDown = 5000;
+
+// Game Controllers
+int numOfLives = 3;
+bool won = false;
+bool lose = false;
+bool game = true;
 
 GLuint tex;
 GLuint tex2;
@@ -60,7 +72,7 @@ GLdouble zFar = 100;
 
 //// Model Variables
 Model_3DS model_plane2;
-Model_3DS shield;
+Model_3DS model_shield;
 Model_3DS model_asteroid;
 
 // Textures
@@ -145,6 +157,25 @@ public:
 
 Camera camera;
 
+/* Printing on Screen Function */
+void print(float x, float y, float z, char *string)
+{
+	int len, i;
+
+	//set the position of the text in the window using the x and y coordinates
+	glRasterPos3f(x, y, z);
+
+	//get the length of the string to display
+	len = (int)strlen(string);
+
+	//loop to display character by character
+	for (i = 0; i < len; i++)
+	{
+		glutBitmapCharacter(GLUT_BITMAP_TIMES_ROMAN_24, string[i]);
+	}
+}
+
+/* Bezier curves Function */
 float* bezier(float t, float* p0, float* p1, float* p2, float* p3)
 {
 	float res[2];
@@ -153,6 +184,7 @@ float* bezier(float t, float* p0, float* p1, float* p2, float* p3)
 	return res;
 }
 
+/* Drawing a circle Function */
 void drawCircle(float x, float y, float z, float inr, float outr) {
 	glPushMatrix();
 	glTranslatef(x, y, z);
@@ -161,30 +193,13 @@ void drawCircle(float x, float y, float z, float inr, float outr) {
 	glPopMatrix();
 }
 
-void drawLogo(float x, float y, float z, float r, float g, float b) {
-	glColor3f(r, g, b);
-	drawCircle(x, y, 0, 13, 15);
-	glColor3f(r, g, b);
-	glBegin(GL_LINE_LOOP);
-	glVertex3f(x - 7, y + 17, z);
-	glVertex3f(x + 3, y + 19, z);
-	glVertex3f(x, y + 5, z);
-	glVertex3f(x + 8, y + 8, z);
-	glVertex3f(x - 5, y - 20, z);
-	glVertex3f(x - 2, y, z);
-	glVertex3f(x - 10, y - 3, z);
-	glEnd();
-}
-
-//=======================================================================
-// Assets Loading Function
-//=======================================================================
+/* Assets Loading Function */
 void LoadAssets()
 {
 
 	//Loading Model files
 	model_plane2.Load("Models/plane2/plane2.3ds");
-	shield.Load("Models/shield/shield2/CaptainAmericasShield.3ds");
+	model_shield.Load("Models/shield/shield2/CaptainAmericasShield.3ds");
 	model_asteroid.Load("Models/asteroid-3DS.3DS");
 
 	//Loading texture files
@@ -192,9 +207,7 @@ void LoadAssets()
 	loadBMP(&tex2, "textures/logo.bmp", true);
 }
 
-//=======================================================================
-// Keyboard Function
-//=======================================================================
+/* Keyboard Function */
 void Keyboard(unsigned char key, int x, int y) {
 
 	switch (key) {
@@ -214,35 +227,42 @@ void Keyboard(unsigned char key, int x, int y) {
 	glutPostRedisplay();
 }
 
+/* Keyboard Special Function */
 void Special(int key, int x, int y) {
 
 	switch (key) {
 	case GLUT_KEY_LEFT:
-		planeX -= 0.1;
+		if (planeX >= -3.5) {
+			planeX -= 0.1;
+		}
 		//planeAngY += 0.1;
 		//planeAngZ += 0.5;
 		break;
 	case GLUT_KEY_RIGHT:
-		planeX += 0.1;
+		if (planeX <= 3.5) {
+			planeX += 0.1;
+		}
 		//planeAngY -= 0.1;
 		//planeAngZ -= 0.5;
 		break;
 	case GLUT_KEY_UP:
-		planeY += 0.1;
+		if (planeY <= 6) {
+			planeY += 0.1;
+		}
 		//planeAngX -= 0.7;
 		break;
 	case GLUT_KEY_DOWN:
-		planeY -= 0.1;
-	//	planeAngX += 0.7;
+		if (planeY >= -1) {
+			planeY -= 0.1;
+		}
+		//	planeAngX += 0.7;
 		break;
 	}
 
 	glutPostRedisplay();
 }
 
-//=======================================================================
-// Camera setup function
-//=======================================================================
+/* Camera setup function */
 void setupCamera() {
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
@@ -254,9 +274,7 @@ void setupCamera() {
 	camera.look();
 }
 
-//=======================================================================
-// Lighting Configuration Function
-//=======================================================================
+/* Lighting Configuration Function */
 void InitLightSource()
 {
 	// Enable Lighting for this OpenGL Program
@@ -283,9 +301,7 @@ void InitLightSource()
 	glLightfv(GL_LIGHT0, GL_POSITION, light_position);
 }
 
-//=======================================================================
-// Material Configuration Function
-//======================================================================
+/* Material Configuration Function */
 void InitMaterial()
 {
 	// Enable Material Tracking
@@ -304,6 +320,7 @@ void InitMaterial()
 	glMaterialfv(GL_FRONT, GL_SHININESS, shininess);
 }
 
+/* Animation Function */
 void Anim() {
 	// object
 	// x = 99.14 -> 15.86 3ard = 3
@@ -313,38 +330,62 @@ void Anim() {
 	// x = 12.06 -> 0.36 3ard = 1.2
 	// y = 7.63 -> 0.228 ertfa3 = 0.7
 	// z = 7.47 -> 0.22  tool = 0.68
+	// shield
+	// radius -> 0.6
+	// x = 1.2
+	// y = 1.2
+	// z = 0.2
 
-	if (
-		((-0.6 + a1x >= planeX - 1.5  && -0.6 + a1x <= planeX + 1.5) || (0.6 + a1x >= planeX - 1.5 && 0.6 + a1x <= planeX + 1.5))
-	/*	&&
+	// first asteroid collision
+	if (((-0.6 + a1x >= planeX - 1.5  && -0.6 + a1x <= planeX + 1.5) || (0.6 + a1x >= planeX - 1.5 && 0.6 + a1x <= planeX + 1.5))
+		/*	&&
 		((-5.1 + a1y >= planeY - 3.3 && -5.1 + a1y <= planeY - 2.7) || (-4.8 + a1y >= planeY - 3.3 && -4.8 + a1y <= planeY - 2.7))*/
 		&&
-		((-0.34 + a1z >= 8.25 && -0.34 + a1z <= 11.75) || (0.34 + a1z >= 8.25 && 0.34 + a1z <= 11.75))
-		)
-	{
-		
+		((-0.34 + a1z >= 8.25 && -0.34 + a1z <= 11.75) || (0.34 + a1z >= 8.25 && 0.34 + a1z <= 11.75))) {
 		printf("%s\n", "d5l");
 		a1t = 0.0;
 		a1z = -20;
+		if (!shieldActivated) {
+			numOfLives--;
+		}
 	}
 
-	if (
-		((-0.6 + a2x +2 >= planeX - 1.5  && -0.6 + a2x +2 <= planeX + 1.5) || (0.6 + a2x +2 >= planeX - 1.5 && 0.6 + a2x +2 <= planeX + 1.5))
+	// second asteroid collision
+	if (((1.4 + a2x >= planeX - 1.5  && 1.4 + a2x <= planeX + 1.5) || (2.6 + a2x >= planeX - 1.5 && 2.6 + a2x <= planeX + 1.5))
 		/*&&
-		((-5.1  >= planeY - 3.3 && -5.1  <= planeY - 2.7) || (-4.8  >= planeY - 3.3 && -4.8  <= planeY - 2.7))*/
-		&&
-		((-0.34 + a2z >= 8.25 && -0.34 + a2z <= 11.75) || (0.34 + a2z >= 8.25 && 0.34 + a2z <= 11.75))
-		)
-	{
-		
+		((-5.1  >= planeY - 3.3 && -5.1  <= planeY - 2.7) || (-4.8  >= planeY - 3.3 && -4.8  <= planeY - 2.7))*/ &&
+		((-0.34 + a2z >= 8.25 && -0.34 + a2z <= 11.75) || (0.34 + a2z >= 8.25 && 0.34 + a2z <= 11.75))) {
 		printf("%s\n", "d5l asr");
 		a2t = 0.0;
 		a2z = -20;
+		if (!shieldActivated) {
+			numOfLives--;
+		}
 	}
-	glutPostRedisplay();
 
+	// shield collision
+	if (((-0.6 >= planeX - 1.5  && -0.6 <= planeX + 1.5) || (0.6 >= planeX - 1.5 && 0.6 <= planeX + 1.5)) &&
+		((shy >= planeY - 3.3 && shy <= planeY - 2.7) || (shy + 1.2 >= planeY - 3.3 && shy + 1.2 <= planeY - 2.7)) &&
+		((-0.1 + shz >= 8.25 && -0.1 + shz <= 11.75) || (0.1 + shz >= 8.25 && 0.1 + shz <= 11.75))) {
+		printf("%s\n", "d5l shield");
+		shieldActivated = true;
+		shy = (rand() % 7) - 3;
+		shz = -20;
+	}
+
+	// shield count down
+	if (shieldActivated) {
+		shieldCountDown--;
+		if (shieldCountDown <= 0) {
+			shieldCountDown = 5000;
+			shieldActivated = false;
+		}
+	}
+
+	glutPostRedisplay();
 }
 
+/* Timer Function */
 void Timer(int value) {
 	seconds += 10;
 	/************************CAMERA ANIMATION***************************/
@@ -378,6 +419,7 @@ void Timer(int value) {
 			}
 		}
 	}
+
 	/***********************Second ASTEROID ANIMATION**********************/
 	if (seconds >= 200) {
 		asteroid2 = true;
@@ -390,12 +432,46 @@ void Timer(int value) {
 	{
 		a2t = a2t + 0.01;
 		a2z += 0.05;
-		a2x = (sin(a2t*1.15)*6) /3;
+		a2x = (sin(a2t*1.15) * 6) / 3;
 	}
+
+	/***********************shield ANIMATION*********************************/
+	if (seconds >= 600) {
+		shield = true;
+	}
+	if (shz >= 20) {
+		shy = (rand() % 7) - 3;
+		shz = -20;
+	}
+	else {
+		shz += 0.05;
+	}
+
 	glutPostRedisplay();
 	glutTimerFunc(10, Timer, 0);
 }
 
+/* Draw Life Function */
+void drawLife(float x, float y, float z) {
+	glPushMatrix();
+	glTranslatef(x, y, z);
+	glRotated(90, 1, 0, 0);
+	glRotated(30, 0, 0, 1);
+	glScalef(0.004, 0.004, 0.004);
+	model_plane2.Draw();
+	glPopMatrix();
+}
+
+/* Draw Lives Function */
+void drawLives() {
+	float initialX = 6;
+	for (int i = 0; i < numOfLives; i++) {
+		drawLife(initialX, 6, 8.5);
+		initialX -= 1;
+	}
+}
+
+/* Drawing Nitrous */
 void drawNitrous() {
 	glPushMatrix();
 	glColor3f(1, 1, 1);
@@ -421,9 +497,7 @@ void drawNitrous() {
 	glPopMatrix();
 }
 
-//=======================================================================
-// Display Function
-//=======================================================================
+/* Display Function */
 void myDisplay(void)
 {
 	setupCamera();
@@ -469,15 +543,18 @@ void myDisplay(void)
 	glPopMatrix();*/
 
 	//drawNitrous();
+	drawLives();
 
-
-	// sheild
-	/*glPushMatrix();
-	glColor3f(1, 1, 1);
-	glScalef(2, 2, 2);
-	glRotatef(90, 1, 0, 0);
-	shield.Draw();
-	glPopMatrix();*/
+	// shield
+	if (shield) {
+		glPushMatrix();
+		glColor3f(1, 1, 1);
+		glTranslated(0, shy, shz);
+		glRotatef(90, 1, 0, 0);
+		glScaled(0.5, 0.5, 0.5);
+		model_shield.Draw();
+		glPopMatrix();
+	}
 
 	//Asteroid 1
 	if (asteroid1) {
@@ -489,10 +566,11 @@ void myDisplay(void)
 		glPopMatrix();
 	}
 
+	// Asteroid 2
 	if (asteroid2) {
 		glPushMatrix();
-		glColor3f(1, 0,0);
-		glTranslatef(a2x +2 , -2.2, a2z);
+		glColor3f(1, 0, 0);
+		glTranslatef(a2x + 2, -2.2, a2z);
 		glScalef(asteroidScale, asteroidScale, asteroidScale);
 		model_asteroid.Draw();
 		glPopMatrix();
@@ -503,9 +581,7 @@ void myDisplay(void)
 	glutSwapBuffers();
 }
 
-//=======================================================================
-// Main Function
-//=======================================================================
+/* Main Function */
 void main(int argc, char** argv)
 {
 	glutInit(&argc, argv);
@@ -551,7 +627,6 @@ void main(int argc, char** argv)
 
 	a13[0] = 0.0;
 	a13[1] = 0.0;
-
 
 	glutMainLoop();
 }
