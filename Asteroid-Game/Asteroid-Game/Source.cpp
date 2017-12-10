@@ -158,21 +158,13 @@ public:
 Camera camera;
 
 /* Printing on Screen Function */
-void print(float x, float y, float z, char *string)
+void print(float x, float y, float z, char *text)
 {
-	int len, i;
-
-	//set the position of the text in the window using the x and y coordinates
 	glRasterPos3f(x, y, z);
 
-	//get the length of the string to display
-	len = (int)strlen(string);
+	for (int i = 0; text[i] != '\0'; i++)
+		glutBitmapCharacter(GLUT_BITMAP_TIMES_ROMAN_24, text[i]);
 
-	//loop to display character by character
-	for (i = 0; i < len; i++)
-	{
-		glutBitmapCharacter(GLUT_BITMAP_TIMES_ROMAN_24, string[i]);
-	}
 }
 
 /* Bezier curves Function */
@@ -338,8 +330,8 @@ void Anim() {
 
 	// first asteroid collision
 	if (((-0.6 + a1x >= planeX - 1.5  && -0.6 + a1x <= planeX + 1.5) || (0.6 + a1x >= planeX - 1.5 && 0.6 + a1x <= planeX + 1.5))
-		/*	&&
-		((-5.1 + a1y >= planeY - 3.3 && -5.1 + a1y <= planeY - 2.7) || (-4.8 + a1y >= planeY - 3.3 && -4.8 + a1y <= planeY - 2.7))*/
+		&&
+		((-4.5 + a1y >= planeY - 3.3 && -4.5 + a1y <= planeY - 2.7) || (-4.2 + a1y >= planeY - 3.3 && -4.2 + a1y <= planeY - 2.7))
 		&&
 		((-0.34 + a1z >= 8.25 && -0.34 + a1z <= 11.75) || (0.34 + a1z >= 8.25 && 0.34 + a1z <= 11.75))) {
 		printf("%s\n", "d5l");
@@ -511,10 +503,7 @@ void myDisplay(void)
 		
 		char text[] = "SHIELD ACTIVATED";
 		glColor3f(1, 1, 1);
-		glRasterPos3f(0, 0, 2);
-		for (int i = 0; text[i] != '\0'; i++)
-			glutBitmapCharacter(GLUT_BITMAP_TIMES_ROMAN_24, text[i]);
-		
+		print(0, 0, 2, "SHIELD ACTIVATED");
 		glPopMatrix();
 		glColor3f(1, 1, 1);
 	}
