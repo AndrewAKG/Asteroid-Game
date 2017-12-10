@@ -369,6 +369,7 @@ void Anim() {
 		((-0.1 + shz >= 8.25 && -0.1 + shz <= 11.75) || (0.1 + shz >= 8.25 && 0.1 + shz <= 11.75))) {
 		printf("%s\n", "d5l shield");
 		shieldActivated = true;
+		
 		shy = (rand() % 7) - 3;
 		shz = -20;
 	}
@@ -379,6 +380,7 @@ void Anim() {
 		if (shieldCountDown <= 0) {
 			shieldCountDown = 5000;
 			shieldActivated = false;
+			
 		}
 	}
 
@@ -504,7 +506,19 @@ void myDisplay(void)
 	InitLightSource();
 	//InitMaterial();
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
+	if (shieldActivated) {
+		glPushMatrix();
+		
+		char text[] = "SHIELD ACTIVATED";
+		glColor3f(1, 1, 1);
+		glRasterPos3f(0, 0, 2);
+		for (int i = 0; text[i] != '\0'; i++)
+			glutBitmapCharacter(GLUT_BITMAP_TIMES_ROMAN_24, text[i]);
+		
+		glPopMatrix();
+		glColor3f(1, 1, 1);
+	}
+	
 	//space box
 	glPushMatrix();
 	GLUquadricObj * qobj;
