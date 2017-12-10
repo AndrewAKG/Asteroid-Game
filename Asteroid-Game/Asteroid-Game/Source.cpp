@@ -39,6 +39,14 @@ float a11[2];
 float a12[2];
 float a13[2];
 
+//Second asteroid controller variables
+bool asteroid2 = false;
+bool a2switch = false;
+float a2t = 0.0;
+float a2x = 0.0;
+float a2y = 0.0;
+float a2z = -20.0;
+
 GLuint tex;
 GLuint tex2;
 GLUquadricObj * qobj;
@@ -211,21 +219,21 @@ void Special(int key, int x, int y) {
 	switch (key) {
 	case GLUT_KEY_LEFT:
 		planeX -= 0.1;
-		planeAngY += 0.1;
-		planeAngZ += 0.5;
+		//planeAngY += 0.1;
+		//planeAngZ += 0.5;
 		break;
 	case GLUT_KEY_RIGHT:
 		planeX += 0.1;
-		planeAngY -= 0.1;
-		planeAngZ -= 0.5;
+		//planeAngY -= 0.1;
+		//planeAngZ -= 0.5;
 		break;
 	case GLUT_KEY_UP:
 		planeY += 0.1;
-		planeAngX += 0.5;
+		//planeAngX -= 0.7;
 		break;
 	case GLUT_KEY_DOWN:
 		planeY -= 0.1;
-		planeAngX -= 0.5;
+	//	planeAngX += 0.7;
 		break;
 	}
 
@@ -308,18 +316,32 @@ void Anim() {
 
 	if (
 		((-0.6 + a1x >= planeX - 1.5  && -0.6 + a1x <= planeX + 1.5) || (0.6 + a1x >= planeX - 1.5 && 0.6 + a1x <= planeX + 1.5))
-		&&
-		((-5.1 + a1y >= planeY - 3.3 && -5.1 + a1y <= planeY - 2.7) || (-4.8 + a1y >= planeY - 3.3 && -4.8 + a1y <= planeY - 2.7))
+	/*	&&
+		((-5.1 + a1y >= planeY - 3.3 && -5.1 + a1y <= planeY - 2.7) || (-4.8 + a1y >= planeY - 3.3 && -4.8 + a1y <= planeY - 2.7))*/
 		&&
 		((-0.34 + a1z >= 8.25 && -0.34 + a1z <= 11.75) || (0.34 + a1z >= 8.25 && 0.34 + a1z <= 11.75))
 		)
 	{
-		printf("%f\n", -5.1 + a1y);
-		printf("%f\n", -4.8 + a1y);
+		
 		printf("%s\n", "d5l");
 		a1t = 0.0;
 		a1z = -20;
 	}
+
+	if (
+		((-0.6 + a2x +2 >= planeX - 1.5  && -0.6 + a2x +2 <= planeX + 1.5) || (0.6 + a2x +2 >= planeX - 1.5 && 0.6 + a2x +2 <= planeX + 1.5))
+		/*&&
+		((-5.1  >= planeY - 3.3 && -5.1  <= planeY - 2.7) || (-4.8  >= planeY - 3.3 && -4.8  <= planeY - 2.7))*/
+		&&
+		((-0.34 + a2z >= 8.25 && -0.34 + a2z <= 11.75) || (0.34 + a2z >= 8.25 && 0.34 + a2z <= 11.75))
+		)
+	{
+		
+		printf("%s\n", "d5l asr");
+		a2t = 0.0;
+		a2z = -20;
+	}
+	glutPostRedisplay();
 
 }
 
@@ -336,7 +358,7 @@ void Timer(int value) {
 	}
 	if (asteroid1) {
 		//printf("%f\n", a1z);
-		if (a1z >= 20) {
+		if (a1z >= 15) {
 
 			//printf("%s\n", "d5l");
 			a1z = -20;
@@ -356,7 +378,20 @@ void Timer(int value) {
 			}
 		}
 	}
-
+	/***********************Second ASTEROID ANIMATION**********************/
+	if (seconds >= 200) {
+		asteroid2 = true;
+	}
+	if (a2z >= 20)
+	{
+		a2z = -20;
+	}
+	else
+	{
+		a2t = a2t + 0.01;
+		a2z += 0.05;
+		a2x = (sin(a2t*1.15)*6) /3;
+	}
 	glutPostRedisplay();
 	glutTimerFunc(10, Timer, 0);
 }
@@ -454,6 +489,15 @@ void myDisplay(void)
 		glPopMatrix();
 	}
 
+	if (asteroid2) {
+		glPushMatrix();
+		glColor3f(1, 0,0);
+		glTranslatef(a2x +2 , -2.2, a2z);
+		glScalef(asteroidScale, asteroidScale, asteroidScale);
+		model_asteroid.Draw();
+		glPopMatrix();
+	}
+
 	glColor3f(1, 1, 1);
 
 	glutSwapBuffers();
@@ -507,6 +551,7 @@ void main(int argc, char** argv)
 
 	a13[0] = 0.0;
 	a13[1] = 0.0;
+
 
 	glutMainLoop();
 }
