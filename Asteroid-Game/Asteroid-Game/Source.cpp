@@ -19,9 +19,14 @@ float camy = 0.03;
 //Plane Controller variables
 float planeX = 0.0;
 float planeY = 0.0;
+float asteroidZ = -5;
+float asteroidScale = 0.025;
+bool asteroid1 = false;
+float seconds = 0;
 float planeAngX = 0.0;
 float planeAngY = 0.0;
 float planeAngZ = 0.0;
+
 
 GLuint tex;
 char title[] = "3D Model Loader Sample";
@@ -254,13 +259,34 @@ void InitMaterial()
 }
 
 void Timer(int value) {
+	seconds += 10;
 	/************************CAMERA ANIMATION***************************/
 	if (camera360) {
 		cameraAngle++;
 	}
 
+	if (seconds >= 100) {
+		asteroid1 = true;
+	}
+	if (asteroid1 == true) {
+		printf("%f\n", asteroidZ);
+		if (asteroidZ >= 10) {
+
+			printf("%s\n", "d5l");
+			asteroidZ = -5;
+		//asteroidScale = 0.06;
+			
+		}
+		else
+		{
+			//asteroidScale -= 0.002;
+			asteroidZ += 0.3;
+		}
+		
+	}
 	glutPostRedisplay();
-	glutTimerFunc(10, Timer, 0);
+
+	glutTimerFunc(100, Timer, 0);
 }
 
 //=======================================================================
@@ -319,11 +345,31 @@ void myDisplay(void)
 	glPopMatrix();*/
 
 
-	//Asteroid
+	//Asteroid1
 	glPushMatrix();
-	glScalef(0.1, 0.1, 0.1);
+	glTranslatef(0, 0,asteroidZ);
+	glScalef(asteroidScale, asteroidScale, asteroidScale);
 	model_asteroid.Draw();
 	glPopMatrix();
+
+	////Asteroid2
+	//glPushMatrix();
+	//glScalef(0.1, 0.1, 0.1);
+	//model_asteroid.Draw();
+	//glPopMatrix();
+
+	////Asteroid3
+	//glPushMatrix();
+	//glScalef(0.1, 0.1, 0.1);
+	//model_asteroid.Draw();
+	//glPopMatrix();
+
+	////Asteroid4
+	//glPushMatrix();
+	//glScalef(0.1, 0.1, 0.1);
+	//model_asteroid.Draw();
+	//glPopMatrix();
+
 
 	glColor3f(1, 1, 1);
 
