@@ -19,16 +19,18 @@ float camy = 0.03;
 //Plane Controller variables
 float planeX = 0.0;
 float planeY = 0.0;
-float asteroidZ = -5;
-float asteroidScale = 0.025;
-bool asteroid1 = false;
-float seconds = 0;
 float planeAngX = 0.0;
 float planeAngY = 0.0;
 float planeAngZ = 0.0;
 
+float asteroidZ = -20;
+float asteroidScale = 0.03;
+bool asteroid1 = false;
+float seconds = 0;
 
 GLuint tex;
+GLuint tex2;
+GLUquadricObj * qobj;
 char title[] = "3D Model Loader Sample";
 
 // 3D Projection Options
@@ -41,6 +43,7 @@ GLdouble zFar = 100;
 Model_3DS model_plane2;
 Model_3DS shield;
 Model_3DS model_asteroid;
+
 // Textures
 GLTexture tex_ground;
 
@@ -90,7 +93,7 @@ public:
 	}
 
 	void sideView() {
-		eye.x = 1.0;
+		eye.x = 15.0;
 		eye.y = 0.0;
 		eye.z = 0.0;
 	}
@@ -98,12 +101,12 @@ public:
 	void frontView() {
 		eye.x = 0.0;
 		eye.y = 0.0;
-		eye.z = 1.0;
+		eye.z = 15.0;
 	}
 
 	void topView() {
 		eye.x = 0.0;
-		eye.y = 0.6;
+		eye.y = 15.0;
 		eye.z = 0.8;
 	}
 
@@ -131,6 +134,29 @@ float* bezier(float t, float* p0, float* p1, float* p2, float* p3)
 	return res;
 }
 
+void drawCircle(float x, float y, float z, float inr, float outr) {
+	glPushMatrix();
+	glTranslatef(x, y, z);
+	GLUquadric *quadObj = gluNewQuadric();
+	gluDisk(quadObj, inr, outr, 50, 50);
+	glPopMatrix();
+}
+
+void drawLogo(float x, float y, float z, float r, float g, float b) {
+	glColor3f(r, g, b);
+	drawCircle(x, y, 0, 13, 15);
+	glColor3f(r, g, b);
+	glBegin(GL_LINE_LOOP);
+	glVertex3f(x - 7, y + 17, z);
+	glVertex3f(x + 3, y + 19, z);
+	glVertex3f(x, y + 5, z);
+	glVertex3f(x + 8, y + 8, z);
+	glVertex3f(x - 5, y - 20, z);
+	glVertex3f(x - 2, y, z);
+	glVertex3f(x - 10, y - 3, z);
+	glEnd();
+}
+
 //=======================================================================
 // Assets Loading Function
 //=======================================================================
@@ -144,6 +170,7 @@ void LoadAssets()
 
 	//Loading texture files
 	loadBMP(&tex, "textures/space3.bmp", true);
+	loadBMP(&tex2, "textures/logo.bmp", true);
 }
 
 //=======================================================================
@@ -270,23 +297,46 @@ void Timer(int value) {
 	}
 	if (asteroid1 == true) {
 		printf("%f\n", asteroidZ);
-		if (asteroidZ >= 10) {
+		if (asteroidZ >= 20) {
 
 			printf("%s\n", "d5l");
-			asteroidZ = -5;
-		//asteroidScale = 0.06;
-			
+			asteroidZ = -20;
+			//asteroidScale = 0.06;
 		}
 		else
 		{
 			//asteroidScale -= 0.002;
-			asteroidZ += 0.3;
+			asteroidZ += 0.05;
 		}
-		
 	}
-	glutPostRedisplay();
 
-	glutTimerFunc(100, Timer, 0);
+	glutPostRedisplay();
+	glutTimerFunc(10, Timer, 0);
+}
+
+void drawNitrous() {
+	glPushMatrix();
+	glColor3f(1, 1, 1);
+	glRotated(90, 1, 0, 0);
+	qobj = gluNewQuadric();
+	glBindTexture(GL_TEXTURE_2D, tex2);
+	gluQuadricTexture(qobj, true);
+	gluQuadricNormals(qobj, GL_SMOOTH);
+	gluCylinder(qobj, 0.5, 0.5, 2, 100, 100);
+	gluDeleteQuadric(qobj);
+	glPopMatrix();
+
+	glPushMatrix();
+	glColor3f(1, 1, 1);
+	glTranslated(0, 0.5, 0);
+	glRotated(90, 1, 0, 0);
+	qobj = gluNewQuadric();
+	glBindTexture(GL_TEXTURE_2D, tex2);
+	gluQuadricTexture(qobj, true);
+	gluQuadricNormals(qobj, GL_SMOOTH);
+	gluCylinder(qobj, 0.2, 0.2, 0.5, 100, 100);
+	gluDeleteQuadric(qobj);
+	glPopMatrix();
 }
 
 //=======================================================================
@@ -336,46 +386,29 @@ void myDisplay(void)
 	model_plane2.Draw();
 	glPopMatrix();*/
 
+	//drawNitrous();
+
 
 	// sheild
 	/*glPushMatrix();
+	glColor3f(1, 1, 1);
 	glScalef(2, 2, 2);
 	glRotatef(90, 1, 0, 0);
 	shield.Draw();
 	glPopMatrix();*/
 
-
-	//Asteroid1
+	//Asteroid
 	glPushMatrix();
-	glTranslatef(0, 0,asteroidZ);
+	glColor3f(1, 1, 1);
+	glTranslatef(0, -2.2, asteroidZ);
 	glScalef(asteroidScale, asteroidScale, asteroidScale);
 	model_asteroid.Draw();
 	glPopMatrix();
-
-	////Asteroid2
-	//glPushMatrix();
-	//glScalef(0.1, 0.1, 0.1);
-	//model_asteroid.Draw();
-	//glPopMatrix();
-
-	////Asteroid3
-	//glPushMatrix();
-	//glScalef(0.1, 0.1, 0.1);
-	//model_asteroid.Draw();
-	//glPopMatrix();
-
-	////Asteroid4
-	//glPushMatrix();
-	//glScalef(0.1, 0.1, 0.1);
-	//model_asteroid.Draw();
-	//glPopMatrix();
-
 
 	glColor3f(1, 1, 1);
 
 	glutSwapBuffers();
 }
-
 
 //=======================================================================
 // Main Function
