@@ -19,8 +19,8 @@ float camy = 0.03;
 //Plane Controller variables
 float planeX = 0.0;
 float planeY = 0.0;
-float asteroidZ = -5;
-float asteroidScale = 0.025;
+float asteroidZ = -20;
+float asteroidScale = 0.03;
 bool asteroid1 = false;
 float seconds = 0;
 float planeAngX = 0.0;
@@ -89,22 +89,22 @@ public:
 		up = Vector3f(upX, upY, upZ);
 	}
 
-	void sideView() {
-		eye.x = 1.0;
-		eye.y = 0.0;
-		eye.z = 0.0;
-	}
-
-	void frontView() {
-		eye.x = 0.0;
-		eye.y = 0.0;
-		eye.z = 1.0;
-	}
-
+	void sideView() 
+	{ 
+	eye.x = 15.0; 		
+	eye.y = 0.0; 	
+	eye.z = 0.0;
+	}  
+	void frontView()
+	{
+		eye.x = 0.0; 		
+		eye.y = 0.0; 		
+		eye.z = 15.0;
+	}  	
 	void topView() {
-		eye.x = 0.0;
-		eye.y = 0.6;
-		eye.z = 0.8;
+		eye.x = 0.0; 		
+		eye.y = 15.0; 		
+		eye.z = 0.8; 
 	}
 
 	void look() {
@@ -270,17 +270,17 @@ void Timer(int value) {
 	}
 	if (asteroid1 == true) {
 		printf("%f\n", asteroidZ);
-		if (asteroidZ >= 10) {
+		if (asteroidZ >= 20) {
 
 			printf("%s\n", "d5l");
-			asteroidZ = -5;
+			asteroidZ = -20;
 		//asteroidScale = 0.06;
 			
 		}
 		else
 		{
 			//asteroidScale -= 0.002;
-			asteroidZ += 0.3;
+			asteroidZ += 0.2;
 		}
 		
 	}
@@ -347,7 +347,7 @@ void myDisplay(void)
 
 	//Asteroid1
 	glPushMatrix();
-	glTranslatef(0, 0,asteroidZ);
+	glTranslatef(0, -2.2,asteroidZ);
 	glScalef(asteroidScale, asteroidScale, asteroidScale);
 	model_asteroid.Draw();
 	glPopMatrix();
