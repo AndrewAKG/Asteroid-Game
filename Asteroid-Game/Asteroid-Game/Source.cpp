@@ -9,6 +9,7 @@ int HEIGHT = 700;
 
 #define DEG2RAD(a) (a * 0.0174532925)
 
+
 //Camera controller variables
 float cameraRadius = 15;
 float cameraAngle = 0.0;
@@ -83,6 +84,7 @@ GLdouble zFar = 100;
 Model_3DS model_plane2;
 Model_3DS model_shield;
 Model_3DS model_asteroid;
+Model_3DS model_winner;
 
 // Textures
 GLTexture tex_ground;
@@ -200,6 +202,7 @@ void LoadAssets()
 	model_plane2.Load("Models/plane2/plane2.3ds");
 	model_shield.Load("Models/shield/shield2/CaptainAmericasShield.3ds");
 	model_asteroid.Load("Models/asteroid-3DS.3DS");
+	model_winner.Load("Models/trophy.3ds");
 
 	//Loading texture files
 	loadBMP(&tex, "textures/space.bmp", true);
@@ -362,43 +365,46 @@ void Anim() {
 
 	// first asteroid collision
 	if (asteroid1) {
-		if (((0.116 + a1x >= planeX - 1.5  && 0.116 + a1x <= planeX + 1.5) || (1.024 + a1x >= planeX - 1.5 && 1.024 + a1x <= planeX + 1.5))
+		if (((0.116 + a1x >= planeX - 1.6  && 0.116 + a1x <= planeX + 1.6) || (1.024 + a1x >= planeX - 1.6 && 1.024 + a1x <= planeX + 1.6))
 			&&
-			((-2.55 + a1y >= planeY - 3.3 && -2.55 + a1y <= planeY - 2.7) || (-1.85 + a1y >= planeY - 3.3 && -1.85 + a1y <= planeY - 2.7))
+			((-2.55 + a1y >= planeY - 3.4 && -2.55 + a1y <= planeY - 2.6) || (-1.85 + a1y >= planeY - 3.4 && -1.85 + a1y <= planeY - 2.6))
 			&&
-			((-0.35 + a1z >= 8.25 && -0.35 + a1z <= 11.75) || (0.35 + a1z >= 8.25 && 0.35 + a1z <= 11.75))) {
+			((-0.35 + a1z >= 7.8 && -0.35 + a1z <= 12.2) || (0.35 + a1z >= 7.8 && 0.35 + a1z <= 12.2))) {
 			printf("%s\n", "d5l");
 			a1t = 0.0;
 			a1z = -30;
+			
 			if (!shieldActivated) {
 				numOfLives--;
+				score -= 20;
 			}
 		}
 	}
 
 	// second asteroid collision
 	if (asteroid2) {
-		if (((1.43 + a2x >= planeX - 1.5 && 1.43 + a2x <= planeX + 1.5) || (2.57 + a2x >= planeX - 1.5 && 2.57 + a2x <= planeX + 1.5))
+		if (((1.43 + a2x >= planeX - 1.6 && 1.43 + a2x <= planeX + 1.6) || (2.57 + a2x >= planeX - 1.6 && 2.57 + a2x <= planeX + 1.6))
 			&&
-			((-2.2 >= planeY - 3.3 && -2.2 <= planeY - 2.7) || (-2.2 >= planeY - 3.3 && -2.2 <= planeY - 2.7))
+			((-2.2 >= planeY - 3.4 && -2.2 <= planeY - 2.6) || (-2.2 >= planeY - 3.4 && -2.2 <= planeY - 2.6))
 			&&
-			((-0.35 + a2z >= 8.25 && -0.35 + a2z <= 11.75) || (0.35 + a2z >= 8.25 && 0.35 + a2z <= 11.75))) {
+			((-0.35 + a2z >= 7.8 && -0.35 + a2z <= 12.2) || (0.35 + a2z >= 7.8 && 0.35 + a2z <= 12.2))) {
 			printf("%s\n", "d5l asr");
 			a2t = 0.0;
 			a2z = -30;
 			if (!shieldActivated) {
 				numOfLives--;
+				score -= 20;
 			}
 		}
 	}
 
 	// shield collision
 	if (shield) {
-		if (((-0.6 >= planeX - 1.5  && -0.6 <= planeX + 1.5) || (0.6 >= planeX - 1.5 && 0.6 <= planeX + 1.5))
+		if (((-0.6 >= planeX - 1.6  && -0.6 <= planeX + 1.6) || (0.6 >= planeX - 1.6 && 0.6 <= planeX + 1.6))
 			&&
-			((shy >= planeY - 3.3 && shy <= planeY - 2.7) || (shy + 1.2 >= planeY - 3.3 && shy + 1.2 <= planeY - 2.7))
+			((shy >= planeY - 3.4 && shy <= planeY - 2.6) || (shy + 1.2 >= planeY - 3.4 && shy + 1.2 <= planeY - 2.6))
 			&&
-			((-0.1 + shz >= 8.25 && -0.1 + shz <= 11.75) || (0.1 + shz >= 8.25 && 0.1 + shz <= 11.75))) {
+			((-0.1 + shz >= 7.8 && -0.1 + shz <= 12.2) || (0.1 + shz >= 7.8 && 0.1 + shz <= 12.2))) {
 			printf("%s\n", "d5l shield");
 			shieldActivated = true;
 			shy = (rand() % 7) - 3;
@@ -408,11 +414,11 @@ void Anim() {
 
 	// nitrous collision
 	if (nitrous) {
-		if (((nx - 0.35 >= planeX - 1.5  && nx - 0.35 <= planeX + 1.5) || (nx + 0.35 >= planeX - 1.5 && nx + 0.35 <= planeX + 1.5))
-			/*&&
-			(( -0.7 >= planeY - 3.3 && -0.7 <= planeY - 2.7) || ( 0.7 >= planeY - 3.3 && 0.7 <= planeY - 2.7))*/
+		if (((nx - 0.35 >= planeX - 1.6  && nx - 0.35 <= planeX + 1.6) || (nx + 0.35 >= planeX - 1.6 && nx + 0.35 <= planeX + 1.6))
 			&&
-			((nz - 0.35 >= 8.25 && nz - 0.35 <= 11.75) || (0.35 + nz >= 8.25 && 0.35 + nz <= 11.75))) {
+			(( -0.7 >= planeY - 3.4 && -0.7 <= planeY - 2.6) || ( 0.7 >= planeY - 3.4 && 0.7 <= planeY - 2.6))
+			&&
+			((nz - 0.35 >= 7.8 && nz - 0.35 <= 12.2) || (0.35 + nz >= 7.8 && 0.35 + nz <= 12.2))) {
 			printf("%s\n", "d5l nitrous");
 			nitrousActivated = true;
 			nx = (rand() % 7) - 3;
@@ -444,6 +450,7 @@ void Anim() {
 /* Timer Function */
 void Timer(int value) {
 	seconds++;
+	score++;
 	/************************CAMERA ANIMATION***************************/
 	if (camera360) {
 		cameraAngle++;
@@ -505,7 +512,7 @@ void Timer(int value) {
 	}
 
 	/***********************NITROUS ANIMATION*********************************/
-	/*if (seconds >= 400) {
+	if (seconds >= 400) {
 		if (nitrous) {
 			nrot += 3;
 			if (nz >= 30) {
@@ -517,7 +524,7 @@ void Timer(int value) {
 			}
 		}
 	}
-*/
+
 	glutPostRedisplay();
 	glutTimerFunc(10, Timer, 0);
 }
@@ -579,88 +586,170 @@ void myDisplay(void)
 	InitLightSource();
 	//InitMaterial();
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	if (shieldActivated) {
-		glPushMatrix();
-		glColor3f(1, 1, 1);
-		print(0, 0, 2, "SHIELD ACTIVATED");
-		glPopMatrix();
-		glColor3f(1, 1, 1);
+
+	if (score >= 50000) {
+		game = false;
+		won = true;
+	}
+	if (numOfLives == 0) {
+		lose = true;
+		game = false;
 	}
 
-	//space box
-	glPushMatrix();
-	GLUquadricObj * qobj;
-	qobj = gluNewQuadric();
-	glRotated(90, 1, 0, 1);
-	glBindTexture(GL_TEXTURE_2D, tex);
-	gluQuadricTexture(qobj, true);
-	gluQuadricNormals(qobj, GL_SMOOTH);
-	gluSphere(qobj, 25, 100, 100);
-	gluDeleteQuadric(qobj);
+	if (game) {
+		glPushMatrix();
+		glColor3f(1, 1,1);
+		char* text[10];
+		sprintf((char *)text, "score:%d", score);
+		print(-5.7,5.3,10, (char *)text);
+		glColor3f(1, 1, 1);
+		glPopMatrix();
 
-	glPopMatrix();
+		if (shieldActivated) {
+			glPushMatrix();
+			glColor3f(1, 1, 1);
+			print(0, 0, 7, "SHIELD ACTIVATED");
+			glPopMatrix();
+			glColor3f(1, 1, 1);
+		}
 
-	/*GLfloat lightIntensity[] = { 0.7, 0.7, 0.7, 1.0f };
-	GLfloat lightPosition[] = { 0.0f, 100.0f, 0.0f, 0.0f };
-	glLightfv(GL_LIGHT0, GL_POSITION, lightPosition);
-	glLightfv(GL_LIGHT0, GL_AMBIENT, lightIntensity);*/
+		//space box
+		glPushMatrix();
+		GLUquadricObj * qobj;
+		qobj = gluNewQuadric();
+		glRotated(90, 1, 0, 1);
+		glBindTexture(GL_TEXTURE_2D, tex);
+		gluQuadricTexture(qobj, true);
+		gluQuadricNormals(qobj, GL_SMOOTH);
+		gluSphere(qobj, 25, 100, 100);
+		gluDeleteQuadric(qobj);
 
-	// large plane model
-	glPushMatrix();
-	glTranslated(planeX, planeY, 0);
-	glRotated(planeAngX, 1, 0, 0);
-	glRotated(planeAngY, 0, 1, 0);
-	glRotated(planeAngZ, 0, 0, 1);
-	glTranslatef(0, -3, 10);
-	//glRotated(-90, 0, 1, 0);
-	glScalef(0.016, 0.016, 0.016);
-	model_plane2.Draw();
-	glPopMatrix();
+		glPopMatrix();
 
-	// life plane model
-	/*glPushMatrix();
-	glTranslatef(0, 0, 10);
-	glScalef(0.006, 0.006, 0.006);
-	model_plane2.Draw();
-	glPopMatrix();*/
+		/*GLfloat lightIntensity[] = { 0.7, 0.7, 0.7, 1.0f };
+		GLfloat lightPosition[] = { 0.0f, 100.0f, 0.0f, 0.0f };
+		glLightfv(GL_LIGHT0, GL_POSITION, lightPosition);
+		glLightfv(GL_LIGHT0, GL_AMBIENT, lightIntensity);*/
 
-	glPushMatrix();
-	//glTranslated(nx, 0, nz);
-	glTranslated(0, 0, 2);
-	glRotated(nrot, 0, 1, 0);
-	glScaled(0.7, 0.7, 0.7);
-	drawNitrous();
-	glPopMatrix();
+		// large plane model
+		glPushMatrix();
+		glTranslated(planeX, planeY, 0);
+		glRotated(planeAngX, 1, 0, 0);
+		glRotated(planeAngY, 0, 1, 0);
+		glRotated(planeAngZ, 0, 0, 1);
+		glTranslatef(0, -3, 10);
+		//glRotated(-90, 0, 1, 0);
+		glScalef(0.016, 0.016, 0.016);
+		model_plane2.Draw();
+		glPopMatrix();
 
-	drawLives();
+		// life plane model
+		/*glPushMatrix();
+		glTranslatef(0, 0, 10);
+		glScalef(0.006, 0.006, 0.006);
+		model_plane2.Draw();
+		glPopMatrix();*/
 
-	// shield
-	glPushMatrix();
-	glColor3f(1, 1, 1);
-	glTranslated(0, shy, shz);
-	glRotatef(90, 1, 0, 0);
-	glScaled(0.5, 0.5, 0.5);
-	model_shield.Draw();
-	glPopMatrix();
+		glPushMatrix();
+		glTranslated(nx, 0, nz);
+		glTranslated(0, 0, 2);
+		glRotated(nrot, 0, 1, 0);
+		glScaled(0.7, 0.7, 0.7);
+		drawNitrous();
+		glPopMatrix();
 
-	//Asteroid 1
-	glPushMatrix();
-	glColor3f(1, 1, 1);
-	glTranslatef(a1x + 0.57, a1y - 2.2, a1z);
-	glScalef(asteroidScale, asteroidScale, asteroidScale);
-	model_asteroid.Draw();
-	glPopMatrix();
+		drawLives();
 
-	// Asteroid 2
-	glPushMatrix();
-	glColor3f(1, 0, 0);
-	glTranslatef(a2x + 2.57, -2.2, a2z);
-	glScalef(asteroidScale, asteroidScale, asteroidScale);
-	model_asteroid.Draw();
-	glPopMatrix();
+		// shield
+		glPushMatrix();
+		glColor3f(1, 1, 1);
+		glTranslated(0, shy, shz);
+		glRotatef(90, 1, 0, 0);
+		glScaled(0.5, 0.5, 0.5);
+		model_shield.Draw();
+		glPopMatrix();
 
-	glColor3f(1, 1, 1);
+		//Asteroid 1
+		glPushMatrix();
+		glColor3f(1, 1, 1);
+		glTranslatef(a1x + 0.57, a1y - 2.2, a1z);
+		glScalef(asteroidScale, asteroidScale, asteroidScale);
+		model_asteroid.Draw();
+		glPopMatrix();
 
+		// Asteroid 2
+		glPushMatrix();
+		glColor3f(1, 0, 0);
+		glTranslatef(a2x + 2.57, -2.2, a2z);
+		glScalef(asteroidScale, asteroidScale, asteroidScale);
+		model_asteroid.Draw();
+		glPopMatrix();
+
+		
+
+		glColor3f(1, 1, 1);
+	}
+	else
+	{
+		planeX = 0;
+		planeY = 0;
+
+		//space box
+		glPushMatrix();
+		GLUquadricObj * qobj;
+		qobj = gluNewQuadric();
+		glRotated(90, 1, 0, 1);
+		glBindTexture(GL_TEXTURE_2D, tex);
+		gluQuadricTexture(qobj, true);
+		gluQuadricNormals(qobj, GL_SMOOTH);
+		gluSphere(qobj, 25, 100, 100);
+		gluDeleteQuadric(qobj);
+		glPopMatrix();
+
+		glPushMatrix();
+		glTranslated(planeX, planeY, 0);
+		glRotated(planeAngX, 1, 0, 0);
+		glRotated(planeAngY, 0, 1, 0);
+		glRotated(planeAngZ, 0, 0, 1);
+		glTranslatef(0, -3, 10);
+		//glRotated(-90, 0, 1, 0);
+		glScalef(0.016, 0.016, 0.016);
+		model_plane2.Draw();
+		glPopMatrix();
+
+		if (won) {
+			glPushMatrix();
+			glColor3f(1, 0, 0);
+			print(-0.2, -0.5, 13, "YOU Win");
+			glPopMatrix();
+
+			glColor3f(1, 1, 1);
+
+			//Winner
+			glPushMatrix();
+			glColor3f(0.854, 0.647, 0.125);
+			glTranslated(-0.7, 0, 0);
+		//	glRotated(180, 0, 1, 0);
+			glRotatef(90, 1, 0, 0);
+			glScaled(0.05, 0.05, 0.05);
+			model_winner.Draw();
+			glPopMatrix();
+
+			glColor3f(1, 1, 1);
+		}
+		else
+		{
+			if (lose) {
+				glPushMatrix();
+				glColor3f(1, 0, 0);
+				print(0, 0, 13, "YOU LOSE");
+				glPopMatrix();
+			}
+
+		}
+		glColor3f(1, 1, 1);
+
+	}
 	glutSwapBuffers();
 }
 
