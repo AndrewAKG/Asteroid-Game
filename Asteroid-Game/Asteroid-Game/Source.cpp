@@ -9,24 +9,18 @@ int HEIGHT = 700;
 
 #define DEG2RAD(a) (a * 0.0174532925)
 
-//Life plane controller Variables
-float lz = -30;
-float lAngle = 0;
-float lt = 0;
-float ly = 0;
-float lx = 0;
-bool life = true;
-float l0[2];
-float l1[2];
-float l2[2];
-float l3[2];
-
-
 //Camera controller variables
 float cameraRadius = 15;
 float cameraAngle = 0.0;
 bool camera360 = false;
 float camy = 0.03;
+float firstPersonX = 0.0;
+float firstPersonY = -2.0;
+float firstPersonZ = 10.0;
+float firstPcenterX = 0.0;
+float firstPcenterY = 0.0;
+float firstPcenterZ = 0.0;
+bool cameraFirstPerson = false;
 
 // Plane Controller variables
 float planeX = 0.0;
@@ -41,7 +35,6 @@ float seconds = 0;
 
 // First asteroid controller variables
 bool asteroid1 = true;
-bool a1switch = false;
 float a1t = 0.0;
 float a1x = 0.0;
 float a1y = 0.0;
@@ -53,11 +46,32 @@ float a13[2];
 
 // Second asteroid controller variables
 bool asteroid2 = true;
-bool a2switch = false;
 float a2t = 0.0;
 float a2x = 0.0;
 float a2y = 0.0;
 float a2z = -30.0;
+
+// Third asteroid controller variables
+bool asteroid3 = true;
+float a3t = 0.0;
+float a3x = 0.0;
+float a3y = (rand() % 7) - 3;
+float a3z = -30.0;
+float a30[2];
+float a31[2];
+float a32[2];
+float a33[2];
+
+// Fourth asteroid controller variables
+bool asteroid4 = true;
+float a4t = 0.0;
+float a4x = (rand() % 11) - 5;
+float a4y = 0.0;
+float a4z = -30.0;
+float a40[2];
+float a41[2];
+float a42[2];
+float a43[2];
 
 // shield controller variables
 bool shield = true;
@@ -73,6 +87,18 @@ float nz = -30.0;
 float nx = (rand() % 7) - 3;
 bool nitrousActivated = false;
 float nitrousCountDown = 3000;
+
+//Life plane controller Variables
+float lz = -30;
+float lAngle = 0;
+float lt = 0;
+float ly = 0;
+float lx = 0;
+bool life = true;
+float l0[2];
+float l1[2];
+float l2[2];
+float l3[2];
 
 // Game Controllers
 int score = 0;
@@ -164,11 +190,25 @@ public:
 		eye.z = 0.8;
 	}
 
+	void firstPerson() {
+		eye.x = firstPersonX;
+		eye.y = firstPersonY;
+		eye.z = firstPersonZ;
+	}
+
 	void look() {
 		if (camera360) {
 			eye.x = cameraRadius* cos(DEG2RAD(cameraAngle));
 			eye.y = camy;
 			eye.z = cameraRadius* sin(DEG2RAD(cameraAngle));
+		}
+		if (cameraFirstPerson) {
+			eye.x = firstPersonX;
+			eye.y = firstPersonY;
+			eye.z = firstPersonZ;
+			center.x = firstPcenterX;
+			center.y = firstPcenterY;
+			center.z = firstPcenterZ;
 		}
 		gluLookAt(
 			eye.x, eye.y, eye.z,
@@ -237,6 +277,9 @@ void Keyboard(unsigned char key, int x, int y) {
 	case 'r':
 		camera360 = !camera360;
 		break;
+	case 'a':
+		cameraFirstPerson = !cameraFirstPerson;
+		break;
 	}
 	glutPostRedisplay();
 }
@@ -249,9 +292,13 @@ void Special(int key, int x, int y) {
 		if (planeX >= -3.5) {
 			if (nitrousActivated) {
 				planeX -= 0.2;
+				firstPersonX -= 0.2;
+				firstPcenterX -= 0.2;
 			}
 			else {
 				planeX -= 0.1;
+				firstPersonX -= 0.1;
+				firstPcenterX -= 0.1;
 			}
 		}
 		//planeAngY += 0.1;
@@ -261,9 +308,13 @@ void Special(int key, int x, int y) {
 		if (planeX <= 3.5) {
 			if (nitrousActivated) {
 				planeX += 0.2;
+				firstPersonX += 0.2;
+				firstPcenterX += 0.2;
 			}
 			else {
 				planeX += 0.1;
+				firstPersonX += 0.1;
+				firstPcenterX += 0.1;
 			}
 		}
 		//planeAngY -= 0.1;
@@ -273,9 +324,13 @@ void Special(int key, int x, int y) {
 		if (planeY <= 6) {
 			if (nitrousActivated) {
 				planeY += 0.2;
+				firstPersonY += 0.2;
+				firstPcenterY += 0.2;
 			}
 			else {
 				planeY += 0.1;
+				firstPersonY += 0.1;
+				firstPcenterY += 0.1;
 			}
 		}
 		//planeAngX -= 0.7;
@@ -284,9 +339,13 @@ void Special(int key, int x, int y) {
 		if (planeY >= -1) {
 			if (nitrousActivated) {
 				planeY -= 0.2;
+				firstPersonY -= 0.2;
+				firstPcenterY -= 0.2;
 			}
 			else {
 				planeY -= 0.1;
+				firstPersonY -= 0.1;
+				firstPcenterY -= 0.1;
 			}
 		}
 		//	planeAngX += 0.7;
@@ -492,7 +551,7 @@ void Timer(int value) {
 			else
 			{
 				a1z += 0.05;
-				if (a1t >= 0.995) {
+				if (a1t >= 1) {
 					a1t = 0.0;
 				}
 				else {
@@ -506,7 +565,7 @@ void Timer(int value) {
 		}
 	}
 
-	/***********************Second ASTEROID ANIMATION**********************/
+	/***********************SECOND ASTEROID ANIMATION**********************/
 	if (seconds >= 200) {
 		if (asteroid2) {
 			if (a2z >= 30)
@@ -522,8 +581,56 @@ void Timer(int value) {
 		}
 	}
 
-	/***********************SHIELD ANIMATION*********************************/
+	/***********************THIRD ASTEROID ANIMATION**********************/
 	if (seconds >= 300) {
+		if (asteroid3) {
+			//printf("%f\n", a1z);
+			if (a3z >= 30) {
+				a3y = (rand() % 7) - 3;
+				a3z = -30;
+			}
+			else
+			{
+				a3z += 0.05;
+				if (a3t >= 1) {
+					a3t = 0.0;
+				}
+				else {
+					a3t += 0.005;
+
+					float* b = bezier(a3t, a30, a31, a32, a33);
+					a3x = b[0];
+				}
+			}
+		}
+	}
+
+	/***********************FOURTH ASTEROID ANIMATION**********************/
+	if (seconds >= 400) {
+		if (asteroid4) {
+			//printf("%f\n", a1z);
+			if (a4z >= 30) {
+				a4x = (rand() % 7) - 3;
+				a4z = -30;
+			}
+			else
+			{
+				a4z += 0.05;
+				if (a4t >= 1) {
+					a4t = 0.0;
+				}
+				else {
+					a4t += 0.005;
+
+					float* b = bezier(a4t, a40, a41, a42, a43);
+					a4y = b[0];
+				}
+			}
+		}
+	}
+
+	/***********************SHIELD ANIMATION*********************************/
+	if (seconds >= 500) {
 		if (shield) {
 			if (shz >= 30) {
 				shy = (rand() % 7) - 3;
@@ -536,7 +643,7 @@ void Timer(int value) {
 	}
 
 	/***********************NITROUS ANIMATION*********************************/
-	if (seconds >= 400) {
+	if (seconds >= 600) {
 		if (nitrous) {
 			nrot += 3;
 			if (nz >= 30) {
@@ -550,11 +657,11 @@ void Timer(int value) {
 	}
 
 	/***********************LIFE ANIMATION*********************************/
-	if (seconds >= 600) {
+	if (seconds >= 700) {
 		if (life) {
 			lAngle++;
 			if (lz >= 22) {
-				lz=-30;
+				lz = -30;
 			}
 			else
 			{
@@ -644,12 +751,13 @@ void inGame() {
 
 	//life plane model
 	glPushMatrix();
-	glTranslatef(lx, ly+1, lz);
+	glTranslatef(lx, ly + 1, lz);
 	glScalef(0.006, 0.006, 0.006);
 	glRotated(lAngle, 0, 0, 1);
 	model_plane2.Draw();
 	glPopMatrix();
 
+	// nitrous
 	glPushMatrix();
 	glTranslated(nx, 0, nz);
 	glTranslated(0, 0, 2);
@@ -681,6 +789,22 @@ void inGame() {
 	glPushMatrix();
 	glColor3f(1, 0, 0);
 	glTranslatef(a2x + 2.57, -2.2, a2z);
+	glScalef(asteroidScale, asteroidScale, asteroidScale);
+	model_asteroid.Draw();
+	glPopMatrix();
+
+	// Asteroid 3
+	glPushMatrix();
+	glColor3f(1, 0, 1);
+	glTranslatef(a3x - 2.57, a3y, a3z);
+	glScalef(asteroidScale, asteroidScale, asteroidScale);
+	model_asteroid.Draw();
+	glPopMatrix();
+
+	// Asteroid 4
+	glPushMatrix();
+	glColor3f(0, 1, 1);
+	glTranslatef(a4x, a4y, a4z);
 	glScalef(asteroidScale, asteroidScale, asteroidScale);
 	model_asteroid.Draw();
 	glPopMatrix();
@@ -823,7 +947,25 @@ void main(int argc, char** argv)
 	a13[0] = 0.0;
 	a13[1] = 0.0;
 
-	//  Life beziar
+	// third asteroid bezier
+	a30[0] = 0.0;
+
+	a31[0] = -3.0;
+
+	a32[0] = 8.0;
+
+	a33[0] = 0.0;
+
+	// fourth asteroid bezier
+	a40[0] = 0.0;
+
+	a41[0] = -8.0;
+
+	a42[0] = 8.0;
+
+	a43[0] = 0.0;
+
+	// Life beziar
 	l0[0] = 0.0;
 	l0[1] = 0.0;
 
