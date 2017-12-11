@@ -341,19 +341,24 @@ void InitMaterial()
 
 /* Animation Function */
 void Anim() {
-	// object
+	/* object */
 	// x = 99.14 -> 15.86 3ard = 3
 	// y = 68 -> 10.88 ertfa3 = 0.6
 	// z = 152.2 -> 24.4 tool = 3.5
-	// asteroid
+	/* asteroid */
 	// x = 12.06 -> 0.36 3ard = 0.98
 	// y = 7.63 -> 0.228 ertfa3 = 0.7
 	// z = 7.47 -> 0.22  tool = 0.68
-	// shield
+	/* shield */
 	// radius -> 0.6
 	// x = 1.2
 	// y = 1.2
 	// z = 0.2
+	/* nitrous */
+	// radius -> 0.5
+	// x = 1 -> 0.7
+	// z = 1 -> 0.7 
+	// y = 2 -> 1.4
 
 	// first asteroid collision
 	if (asteroid1) {
@@ -364,7 +369,7 @@ void Anim() {
 			((-0.35 + a1z >= 8.25 && -0.35 + a1z <= 11.75) || (0.35 + a1z >= 8.25 && 0.35 + a1z <= 11.75))) {
 			printf("%s\n", "d5l");
 			a1t = 0.0;
-			a1z = -20;
+			a1z = -30;
 			if (!shieldActivated) {
 				numOfLives--;
 			}
@@ -380,7 +385,7 @@ void Anim() {
 			((-0.35 + a2z >= 8.25 && -0.35 + a2z <= 11.75) || (0.35 + a2z >= 8.25 && 0.35 + a2z <= 11.75))) {
 			printf("%s\n", "d5l asr");
 			a2t = 0.0;
-			a2z = -20;
+			a2z = -30;
 			if (!shieldActivated) {
 				numOfLives--;
 			}
@@ -397,7 +402,21 @@ void Anim() {
 			printf("%s\n", "d5l shield");
 			shieldActivated = true;
 			shy = (rand() % 7) - 3;
-			shz = -20;
+			shz = -30;
+		}
+	}
+
+	// nitrous collision
+	if (nitrous) {
+		if (((nx - 0.35 >= planeX - 1.5  && nx - 0.35 <= planeX + 1.5) || (nx + 0.35 >= planeX - 1.5 && nx + 0.35 <= planeX + 1.5))
+			/*&&
+			(( -0.7 >= planeY - 3.3 && -0.7 <= planeY - 2.7) || ( 0.7 >= planeY - 3.3 && 0.7 <= planeY - 2.7))*/
+			&&
+			((nz - 0.35 >= 8.25 && nz - 0.35 <= 11.75) || (0.35 + nz >= 8.25 && 0.35 + nz <= 11.75))) {
+			printf("%s\n", "d5l nitrous");
+			nitrousActivated = true;
+			nx = (rand() % 7) - 3;
+			nz = -30;
 		}
 	}
 
@@ -488,6 +507,7 @@ void Timer(int value) {
 	/***********************NITROUS ANIMATION*********************************/
 	if (seconds >= 400) {
 		if (nitrous) {
+			nrot += 3;
 			if (nz >= 30) {
 				nx = (rand() % 7) - 3;
 				nz = -30;
@@ -601,46 +621,39 @@ void myDisplay(void)
 	model_plane2.Draw();
 	glPopMatrix();*/
 
-	if (nitrous) {
-		glPushMatrix();
-		glTranslated(nx, 0, nz);
-		glScaled(0.7, 0.7, 0.7);
-		drawNitrous();
-		glPopMatrix();
-	}
+	glPushMatrix();
+	glTranslated(nx, 0, nz);
+	glRotated(nrot, 0, 1, 0);
+	glScaled(0.7, 0.7, 0.7);
+	drawNitrous();
+	glPopMatrix();
 
 	drawLives();
 
 	// shield
-	if (shield) {
-		glPushMatrix();
-		glColor3f(1, 1, 1);
-		glTranslated(0, shy, shz);
-		glRotatef(90, 1, 0, 0);
-		glScaled(0.5, 0.5, 0.5);
-		model_shield.Draw();
-		glPopMatrix();
-	}
-
-	//Asteroid 1
-	/*if (asteroid1) {
 	glPushMatrix();
 	glColor3f(1, 1, 1);
-	glTranslatef(a1x+0.57, a1y-2.2 , a1z);
+	glTranslated(0, shy, shz);
+	glRotatef(90, 1, 0, 0);
+	glScaled(0.5, 0.5, 0.5);
+	model_shield.Draw();
+	glPopMatrix();
+
+	//Asteroid 1
+	glPushMatrix();
+	glColor3f(1, 1, 1);
+	glTranslatef(a1x + 0.57, a1y - 2.2, a1z);
 	glScalef(asteroidScale, asteroidScale, asteroidScale);
 	model_asteroid.Draw();
 	glPopMatrix();
-	}*/
 
 	// Asteroid 2
-	if (asteroid2) {
-		glPushMatrix();
-		glColor3f(1, 0, 0);
-		glTranslatef(a2x + 2.57, -2.2, a2z);
-		glScalef(asteroidScale, asteroidScale, asteroidScale);
-		model_asteroid.Draw();
-		glPopMatrix();
-	}
+	glPushMatrix();
+	glColor3f(1, 0, 0);
+	glTranslatef(a2x + 2.57, -2.2, a2z);
+	glScalef(asteroidScale, asteroidScale, asteroidScale);
+	model_asteroid.Draw();
+	glPopMatrix();
 
 	glColor3f(1, 1, 1);
 
