@@ -342,9 +342,9 @@ void InitMaterial()
 /* Animation Function */
 void Anim() {
 	/* object */
-	// x = 99.14 -> 15.86 3ard = 3
-	// y = 68 -> 10.88 ertfa3 = 0.6
-	// z = 152.2 -> 24.4 tool = 3.5
+	// x = 99.14 -> 15.86 3ard = 3.2
+	// y = 68 -> 10.88 ertfa3 = 0.8
+	// z = 152.2 -> 24.4 tool = 4.4
 	/* asteroid */
 	// x = 12.06 -> 0.36 3ard = 0.98
 	// y = 7.63 -> 0.228 ertfa3 = 0.7
@@ -505,7 +505,7 @@ void Timer(int value) {
 	}
 
 	/***********************NITROUS ANIMATION*********************************/
-	if (seconds >= 400) {
+	/*if (seconds >= 400) {
 		if (nitrous) {
 			nrot += 3;
 			if (nz >= 30) {
@@ -517,7 +517,7 @@ void Timer(int value) {
 			}
 		}
 	}
-
+*/
 	glutPostRedisplay();
 	glutTimerFunc(10, Timer, 0);
 }
@@ -547,6 +547,8 @@ void drawNitrous() {
 	glPushMatrix();
 	glColor3f(1, 1, 1);
 	glRotated(180, 0, 1, 0);
+	//glTranslated(2, 0.5, -3);
+	//glRotated(-90, 0, 1, 0);
 	glRotated(90, 1, 0, 0);
 	qobj = gluNewQuadric();
 	glBindTexture(GL_TEXTURE_2D, tex2);
@@ -610,6 +612,7 @@ void myDisplay(void)
 	glRotated(planeAngY, 0, 1, 0);
 	glRotated(planeAngZ, 0, 0, 1);
 	glTranslatef(0, -3, 10);
+	//glRotated(-90, 0, 1, 0);
 	glScalef(0.016, 0.016, 0.016);
 	model_plane2.Draw();
 	glPopMatrix();
@@ -622,7 +625,8 @@ void myDisplay(void)
 	glPopMatrix();*/
 
 	glPushMatrix();
-	glTranslated(nx, 0, nz);
+	//glTranslated(nx, 0, nz);
+	glTranslated(0, 0, 2);
 	glRotated(nrot, 0, 1, 0);
 	glScaled(0.7, 0.7, 0.7);
 	drawNitrous();
