@@ -9,6 +9,18 @@ int HEIGHT = 700;
 
 #define DEG2RAD(a) (a * 0.0174532925)
 
+//Life plane controller Variables
+float lz = -30;
+float lAngle = 0;
+float lt = 0;
+float ly = 0;
+float lx = 0;
+bool life = true;
+float l0[2];
+float l1[2];
+float l2[2];
+float l3[2];
+
 
 //Camera controller variables
 float cameraRadius = 15;
@@ -64,7 +76,7 @@ float nitrousCountDown = 3000;
 
 // Game Controllers
 int score = 0;
-int numOfLives = 3;
+int numOfLives = 10;
 bool won = false;
 bool lose = false;
 bool game = true;
@@ -427,7 +439,7 @@ void Anim() {
 	}
 
 	// checking player score
-	if (score >= 500) {
+	if (score >= 5000) {
 		game = false;
 		won = true;
 	}
@@ -537,6 +549,24 @@ void Timer(int value) {
 		}
 	}
 
+	/***********************LIFE ANIMATION*********************************/
+	if (seconds >= 600) {
+		if (life) {
+			lAngle++;
+			if (lz >= 22) {
+				lz=-30;
+			}
+			else
+			{
+				lt = lt + 0.01;
+				lz += 0.05;
+				ly = (cos(lt*1.15) * 6) / 3;
+				lx = (sin(lt*3.15) * 2) / 3;
+
+			}
+		}
+	}
+
 	glutPostRedisplay();
 	glutTimerFunc(10, Timer, 0);
 }
@@ -593,6 +623,7 @@ void drawNitrous() {
 
 /* While Player in Game Function */
 void inGame() {
+
 	glPushMatrix();
 	glColor3f(1, 1, 1);
 	char* text[10];
@@ -600,6 +631,8 @@ void inGame() {
 	print(-5.7, 5.3, 10, (char *)text);
 	glColor3f(1, 1, 1);
 	glPopMatrix();
+
+	glColor3f(1, 1, 1);
 
 	if (shieldActivated) {
 		glPushMatrix();
@@ -609,12 +642,13 @@ void inGame() {
 		glColor3f(1, 1, 1);
 	}
 
-	// life plane model
-	/*glPushMatrix();
-	glTranslatef(0, 0, 10);
+	//life plane model
+	glPushMatrix();
+	glTranslatef(lx, ly+1, lz);
 	glScalef(0.006, 0.006, 0.006);
+	glRotated(lAngle, 0, 0, 1);
 	model_plane2.Draw();
-	glPopMatrix();*/
+	glPopMatrix();
 
 	glPushMatrix();
 	glTranslated(nx, 0, nz);
@@ -666,6 +700,7 @@ void loseGame() {
 
 /* When player wins */
 void winGame() {
+
 	planeX = 0;
 	planeY = 0;
 	glPushMatrix();
@@ -787,6 +822,19 @@ void main(int argc, char** argv)
 
 	a13[0] = 0.0;
 	a13[1] = 0.0;
+
+	//  Life beziar
+	l0[0] = 0.0;
+	l0[1] = 0.0;
+
+	l1[0] = -5.0;
+	l1[1] = 3.0;
+
+	l2[0] = 5.0;
+	l2[1] = 3.0;
+
+	l3[0] = 0.0;
+	l3[1] = 0.0;
 
 	glutMainLoop();
 }
