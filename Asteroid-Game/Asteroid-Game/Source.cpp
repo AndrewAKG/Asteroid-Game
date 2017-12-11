@@ -373,7 +373,7 @@ void Anim() {
 			printf("%s\n", "d5l");
 			a1t = 0.0;
 			a1z = -30;
-			
+
 			if (!shieldActivated) {
 				numOfLives--;
 				score -= 20;
@@ -416,7 +416,7 @@ void Anim() {
 	if (nitrous) {
 		if (((nx - 0.35 >= planeX - 1.6  && nx - 0.35 <= planeX + 1.6) || (nx + 0.35 >= planeX - 1.6 && nx + 0.35 <= planeX + 1.6))
 			&&
-			(( -0.7 >= planeY - 3.4 && -0.7 <= planeY - 2.6) || ( 0.7 >= planeY - 3.4 && 0.7 <= planeY - 2.6))
+			((-0.7 >= planeY - 3.4 && -0.7 <= planeY - 2.6) || (0.7 >= planeY - 3.4 && 0.7 <= planeY - 2.6))
 			&&
 			((nz - 0.35 >= 7.8 && nz - 0.35 <= 12.2) || (0.35 + nz >= 7.8 && 0.35 + nz <= 12.2))) {
 			printf("%s\n", "d5l nitrous");
@@ -424,6 +424,18 @@ void Anim() {
 			nx = (rand() % 7) - 3;
 			nz = -30;
 		}
+	}
+
+	// checking player score
+	if (score >= 500) {
+		game = false;
+		won = true;
+	}
+
+	// checking player number of lives
+	if (numOfLives == 0) {
+		lose = true;
+		game = false;
 	}
 
 	// shield count down
@@ -579,6 +591,103 @@ void drawNitrous() {
 	glPopMatrix();
 }
 
+/* While Player in Game Function */
+void inGame() {
+	glPushMatrix();
+	glColor3f(1, 1, 1);
+	char* text[10];
+	sprintf((char *)text, "score:%d", score);
+	print(-5.7, 5.3, 10, (char *)text);
+	glColor3f(1, 1, 1);
+	glPopMatrix();
+
+	if (shieldActivated) {
+		glPushMatrix();
+		glColor3f(1, 1, 1);
+		print(0, 0, 7, "SHIELD ACTIVATED");
+		glPopMatrix();
+		glColor3f(1, 1, 1);
+	}
+
+	// life plane model
+	/*glPushMatrix();
+	glTranslatef(0, 0, 10);
+	glScalef(0.006, 0.006, 0.006);
+	model_plane2.Draw();
+	glPopMatrix();*/
+
+	glPushMatrix();
+	glTranslated(nx, 0, nz);
+	glTranslated(0, 0, 2);
+	glRotated(nrot, 0, 1, 0);
+	glScaled(0.7, 0.7, 0.7);
+	drawNitrous();
+	glPopMatrix();
+
+	drawLives();
+
+	// shield
+	glPushMatrix();
+	glColor3f(1, 1, 1);
+	glTranslated(0, shy, shz);
+	glRotatef(90, 1, 0, 0);
+	glScaled(0.5, 0.5, 0.5);
+	model_shield.Draw();
+	glPopMatrix();
+
+	//Asteroid 1
+	glPushMatrix();
+	glColor3f(1, 1, 1);
+	glTranslatef(a1x + 0.57, a1y - 2.2, a1z);
+	glScalef(asteroidScale, asteroidScale, asteroidScale);
+	model_asteroid.Draw();
+	glPopMatrix();
+
+	// Asteroid 2
+	glPushMatrix();
+	glColor3f(1, 0, 0);
+	glTranslatef(a2x + 2.57, -2.2, a2z);
+	glScalef(asteroidScale, asteroidScale, asteroidScale);
+	model_asteroid.Draw();
+	glPopMatrix();
+
+	glColor3f(1, 1, 1);
+}
+
+/* When player loses */
+void loseGame() {
+	planeX = 0;
+	planeY = 0;
+	glPushMatrix();
+	glColor3f(1, 0, 0);
+	print(0, 0, 13, "YOU LOSE");
+	glPopMatrix();
+}
+
+/* When player wins */
+void winGame() {
+	planeX = 0;
+	planeY = 0;
+	glPushMatrix();
+	glColor3f(1, 0, 0);
+	print(-0.2, -0.5, 13, "YOU Win");
+	glPopMatrix();
+
+	glColor3f(1, 1, 1);
+
+	//Winner
+	glPushMatrix();
+	glColor3f(0.854, 0.647, 0.125);
+	glTranslated(-0.7, 0, 0);
+	//	glRotated(180, 0, 1, 0);
+	glRotatef(90, 1, 0, 0);
+	glScaled(0.05, 0.05, 0.05);
+	model_winner.Draw();
+	glPopMatrix();
+
+	glColor3f(1, 1, 1);
+}
+
 /* Display Function */
 void myDisplay(void)
 {
@@ -587,169 +696,48 @@ void myDisplay(void)
 	//InitMaterial();
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-	if (score >= 50000) {
-		game = false;
-		won = true;
-	}
-	if (numOfLives == 0) {
-		lose = true;
-		game = false;
-	}
+	/*GLfloat lightIntensity[] = { 0.7, 0.7, 0.7, 1.0f };
+	GLfloat lightPosition[] = { 0.0f, 100.0f, 0.0f, 0.0f };
+	glLightfv(GL_LIGHT0, GL_POSITION, lightPosition);
+	glLightfv(GL_LIGHT0, GL_AMBIENT, lightIntensity);*/
+
+	//space box
+	glPushMatrix();
+	GLUquadricObj * qobj;
+	qobj = gluNewQuadric();
+	glRotated(90, 1, 0, 1);
+	glBindTexture(GL_TEXTURE_2D, tex);
+	gluQuadricTexture(qobj, true);
+	gluQuadricNormals(qobj, GL_SMOOTH);
+	gluSphere(qobj, 25, 100, 100);
+	gluDeleteQuadric(qobj);
+
+	glPopMatrix();
+
+	// large plane model
+	glPushMatrix();
+	glTranslated(planeX, planeY, 0);
+	glRotated(planeAngX, 1, 0, 0);
+	glRotated(planeAngY, 0, 1, 0);
+	glRotated(planeAngZ, 0, 0, 1);
+	glTranslatef(0, -3, 10);
+	//glRotated(-90, 0, 1, 0);
+	glScalef(0.016, 0.016, 0.016);
+	model_plane2.Draw();
+	glPopMatrix();
 
 	if (game) {
-		glPushMatrix();
-		glColor3f(1, 1,1);
-		char* text[10];
-		sprintf((char *)text, "score:%d", score);
-		print(-5.7,5.3,10, (char *)text);
-		glColor3f(1, 1, 1);
-		glPopMatrix();
-
-		if (shieldActivated) {
-			glPushMatrix();
-			glColor3f(1, 1, 1);
-			print(0, 0, 7, "SHIELD ACTIVATED");
-			glPopMatrix();
-			glColor3f(1, 1, 1);
-		}
-
-		//space box
-		glPushMatrix();
-		GLUquadricObj * qobj;
-		qobj = gluNewQuadric();
-		glRotated(90, 1, 0, 1);
-		glBindTexture(GL_TEXTURE_2D, tex);
-		gluQuadricTexture(qobj, true);
-		gluQuadricNormals(qobj, GL_SMOOTH);
-		gluSphere(qobj, 25, 100, 100);
-		gluDeleteQuadric(qobj);
-
-		glPopMatrix();
-
-		/*GLfloat lightIntensity[] = { 0.7, 0.7, 0.7, 1.0f };
-		GLfloat lightPosition[] = { 0.0f, 100.0f, 0.0f, 0.0f };
-		glLightfv(GL_LIGHT0, GL_POSITION, lightPosition);
-		glLightfv(GL_LIGHT0, GL_AMBIENT, lightIntensity);*/
-
-		// large plane model
-		glPushMatrix();
-		glTranslated(planeX, planeY, 0);
-		glRotated(planeAngX, 1, 0, 0);
-		glRotated(planeAngY, 0, 1, 0);
-		glRotated(planeAngZ, 0, 0, 1);
-		glTranslatef(0, -3, 10);
-		//glRotated(-90, 0, 1, 0);
-		glScalef(0.016, 0.016, 0.016);
-		model_plane2.Draw();
-		glPopMatrix();
-
-		// life plane model
-		/*glPushMatrix();
-		glTranslatef(0, 0, 10);
-		glScalef(0.006, 0.006, 0.006);
-		model_plane2.Draw();
-		glPopMatrix();*/
-
-		glPushMatrix();
-		glTranslated(nx, 0, nz);
-		glTranslated(0, 0, 2);
-		glRotated(nrot, 0, 1, 0);
-		glScaled(0.7, 0.7, 0.7);
-		drawNitrous();
-		glPopMatrix();
-
-		drawLives();
-
-		// shield
-		glPushMatrix();
-		glColor3f(1, 1, 1);
-		glTranslated(0, shy, shz);
-		glRotatef(90, 1, 0, 0);
-		glScaled(0.5, 0.5, 0.5);
-		model_shield.Draw();
-		glPopMatrix();
-
-		//Asteroid 1
-		glPushMatrix();
-		glColor3f(1, 1, 1);
-		glTranslatef(a1x + 0.57, a1y - 2.2, a1z);
-		glScalef(asteroidScale, asteroidScale, asteroidScale);
-		model_asteroid.Draw();
-		glPopMatrix();
-
-		// Asteroid 2
-		glPushMatrix();
-		glColor3f(1, 0, 0);
-		glTranslatef(a2x + 2.57, -2.2, a2z);
-		glScalef(asteroidScale, asteroidScale, asteroidScale);
-		model_asteroid.Draw();
-		glPopMatrix();
-
-		
-
-		glColor3f(1, 1, 1);
+		inGame();
 	}
-	else
-	{
-		planeX = 0;
-		planeY = 0;
-
-		//space box
-		glPushMatrix();
-		GLUquadricObj * qobj;
-		qobj = gluNewQuadric();
-		glRotated(90, 1, 0, 1);
-		glBindTexture(GL_TEXTURE_2D, tex);
-		gluQuadricTexture(qobj, true);
-		gluQuadricNormals(qobj, GL_SMOOTH);
-		gluSphere(qobj, 25, 100, 100);
-		gluDeleteQuadric(qobj);
-		glPopMatrix();
-
-		glPushMatrix();
-		glTranslated(planeX, planeY, 0);
-		glRotated(planeAngX, 1, 0, 0);
-		glRotated(planeAngY, 0, 1, 0);
-		glRotated(planeAngZ, 0, 0, 1);
-		glTranslatef(0, -3, 10);
-		//glRotated(-90, 0, 1, 0);
-		glScalef(0.016, 0.016, 0.016);
-		model_plane2.Draw();
-		glPopMatrix();
-
-		if (won) {
-			glPushMatrix();
-			glColor3f(1, 0, 0);
-			print(-0.2, -0.5, 13, "YOU Win");
-			glPopMatrix();
-
-			glColor3f(1, 1, 1);
-
-			//Winner
-			glPushMatrix();
-			glColor3f(0.854, 0.647, 0.125);
-			glTranslated(-0.7, 0, 0);
-		//	glRotated(180, 0, 1, 0);
-			glRotatef(90, 1, 0, 0);
-			glScaled(0.05, 0.05, 0.05);
-			model_winner.Draw();
-			glPopMatrix();
-
-			glColor3f(1, 1, 1);
-		}
-		else
-		{
-			if (lose) {
-				glPushMatrix();
-				glColor3f(1, 0, 0);
-				print(0, 0, 13, "YOU LOSE");
-				glPopMatrix();
-			}
-
-		}
-		glColor3f(1, 1, 1);
-
+	else if (won) {
+		winGame();
 	}
+	else {
+		loseGame();
+	}
+
+	glColor3f(1, 1, 1);
+
 	glutSwapBuffers();
 }
 
