@@ -416,9 +416,9 @@ void InitMaterial()
 /* Animation Function */
 void Anim() {
 	/* object */
-	// x = 99.14 -> 15.86 3ard = 3.2
-	// y = 68 -> 10.88 ertfa3 = 0.8
-	// z = 152.2 -> 24.4 tool = 4.4
+	// x = 99.14 -> 15.86 3ard = 3.2  life 1.2
+	// y = 68 -> 10.88 ertfa3 = 0.8   life 0.3
+	// z = 152.2 -> 24.4 tool = 4.4   life 1.65
 	/* asteroid */
 	// x = 12.06 -> 0.36 3ard = 0.98
 	// y = 7.63 -> 0.228 ertfa3 = 0.7
@@ -452,7 +452,7 @@ void Anim() {
 		}
 	}
 
-	// second asteroid collision
+	//// second asteroid collision
 	if (asteroid2) {
 		if (((1.43 + a2x >= planeX - 1.6 && 1.43 + a2x <= planeX + 1.6) || (2.57 + a2x >= planeX - 1.6 && 2.57 + a2x <= planeX + 1.6))
 			&&
@@ -462,6 +462,59 @@ void Anim() {
 			printf("%s\n", "d5l asr");
 			a2t = 0.0;
 			a2z = -30;
+			if (!shieldActivated) {
+				numOfLives--;
+				score -= 20;
+			}
+		}
+	}
+
+
+	//Third asteroid collision
+	if (asteroid3) {
+		if ((( a3x-2.57-0.454 >= planeX - 1.6 && a3x-2.57-0.454 <= planeX + 1.6) || (a3x-2.57+0.454 >= planeX - 1.6 && a3x-2.57+0.454 <= planeX + 1.6))
+			&&
+			((a3y-0.35-2 >= planeY - 3.4 && a3y-0.35-2 <= planeY - 2.6) || (a3y+0.35-2 >= planeY - 3.4 && a3y+0.35-2 <= planeY - 2.6))
+			&&
+			(( a3z-0.34 >= 7.8 &&  a3z-0.34 <= 12.2) || ( a3z+0.34 >= 7.8 && a3z+0.34 <= 12.2))) {
+			printf("%s\n", "d5l as3");
+			a3t = 0.0;
+			a3z = -30;
+			if (!shieldActivated) {
+				numOfLives--;
+				score -= 20;
+			}
+		}
+	}
+
+
+	//	FOURTH asteroid collision
+	if (asteroid4) {
+		if ((( a4x-0.454 >= planeX - 1.6 && a4x-0.454 <= planeX + 1.6) || (a4x+0.454 >= planeX - 1.6 && a4x+0.454 <= planeX + 1.6))
+			&&
+			((a4y-0.35 >= planeY - 3.4 && a4y-0.35 <= planeY - 2.6) || (a4y+0.35 >= planeY - 3.4 && a4y+0.35 <= planeY - 2.6))
+			&&
+			(( a4z-0.34 >= 7.8 &&  a4z-0.34 <= 12.2) || ( a4z+0.34 >= 7.8 && a4z+0.34 <= 12.2))) {
+			printf("%s\n", "d5l as4");
+			a4t = 0.0;
+			a4z = -30;
+			if (!shieldActivated) {
+				numOfLives--;
+				score -= 20;
+			}
+		}
+	}
+
+	//	LIFE Collision
+	if (life) {
+		if (((lx - 0.6 >= planeX - 1.6 && lx - 0.6 <= planeX + 1.6) || (lx + 0.6 >= planeX - 1.6 && lx + 0.6 <= planeX + 1.6))
+			&&
+			((ly +1- 0.15 >= planeY - 3.4 && ly+1 - 0.15 <= planeY - 2.6) || (ly+1 + 0.15 >= planeY - 3.4 && ly+1 + 0.15 <= planeY - 2.6))
+			&&
+			((lz- 0.825 >= 7.8 &&  lz - 0.825 <= 12.2) || (lz + 0.825 >= 7.8 && lz + 0.825 <= 12.2))) {
+			printf("%s\n", "d5l life");
+			lt = 0.0;
+			lz = -30;
 			if (!shieldActivated) {
 				numOfLives--;
 				score -= 20;
@@ -496,6 +549,7 @@ void Anim() {
 			nz = -30;
 		}
 	}
+
 
 	// checking player score
 	if (score >= 5000) {
@@ -785,7 +839,7 @@ void inGame() {
 	model_asteroid.Draw();
 	glPopMatrix();
 
-	// Asteroid 2
+	//// Asteroid 2
 	glPushMatrix();
 	glColor3f(1, 0, 0);
 	glTranslatef(a2x + 2.57, -2.2, a2z);
@@ -796,7 +850,7 @@ void inGame() {
 	// Asteroid 3
 	glPushMatrix();
 	glColor3f(1, 0, 1);
-	glTranslatef(a3x - 2.57, a3y, a3z);
+	glTranslatef(a3x - 2.57, a3y-2, a3z);
 	glScalef(asteroidScale, asteroidScale, asteroidScale);
 	model_asteroid.Draw();
 	glPopMatrix();
