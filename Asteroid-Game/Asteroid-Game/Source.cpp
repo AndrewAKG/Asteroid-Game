@@ -102,7 +102,7 @@ float l3[2];
 
 // Game Controllers
 int score = 0;
-int numOfLives = 10;
+int numOfLives = 9;
 bool won = false;
 bool lose = false;
 bool game = true;
@@ -118,11 +118,12 @@ GLdouble aspectRatio = (GLdouble)WIDTH / (GLdouble)HEIGHT;
 GLdouble zNear = 0.1;
 GLdouble zFar = 100;
 
-//// Model Variables
+// Model Variables
 Model_3DS model_plane2;
 Model_3DS model_shield;
 Model_3DS model_asteroid;
 Model_3DS model_winner;
+Model_3DS model_life;
 
 // Textures
 GLTexture tex_ground;
@@ -255,6 +256,7 @@ void LoadAssets()
 	model_shield.Load("Models/shield/shield2/CaptainAmericasShield.3ds");
 	model_asteroid.Load("Models/asteroid-3DS.3DS");
 	model_winner.Load("Models/trophy.3ds");
+	model_life.Load("Models/Heart.3ds");
 
 	//Loading texture files
 	loadBMP(&tex, "textures/space.bmp", true);
@@ -289,63 +291,71 @@ void Special(int key, int x, int y) {
 
 	switch (key) {
 	case GLUT_KEY_LEFT:
-		if (planeX >= -3.5) {
-			if (nitrousActivated) {
-				planeX -= 0.2;
-				firstPersonX -= 0.2;
-				firstPcenterX -= 0.2;
-			}
-			else {
-				planeX -= 0.1;
-				firstPersonX -= 0.1;
-				firstPcenterX -= 0.1;
+		if (game) {
+			if (planeX >= -3.5) {
+				if (nitrousActivated) {
+					planeX -= 0.2;
+					firstPersonX -= 0.2;
+					firstPcenterX -= 0.2;
+				}
+				else {
+					planeX -= 0.1;
+					firstPersonX -= 0.1;
+					firstPcenterX -= 0.1;
+				}
 			}
 		}
 		//planeAngY += 0.1;
 		//planeAngZ += 0.5;
 		break;
 	case GLUT_KEY_RIGHT:
-		if (planeX <= 3.5) {
-			if (nitrousActivated) {
-				planeX += 0.2;
-				firstPersonX += 0.2;
-				firstPcenterX += 0.2;
-			}
-			else {
-				planeX += 0.1;
-				firstPersonX += 0.1;
-				firstPcenterX += 0.1;
+		if (game) {
+			if (planeX <= 3.5) {
+				if (nitrousActivated) {
+					planeX += 0.2;
+					firstPersonX += 0.2;
+					firstPcenterX += 0.2;
+				}
+				else {
+					planeX += 0.1;
+					firstPersonX += 0.1;
+					firstPcenterX += 0.1;
+				}
 			}
 		}
 		//planeAngY -= 0.1;
 		//planeAngZ -= 0.5;
 		break;
 	case GLUT_KEY_UP:
-		if (planeY <= 6) {
-			if (nitrousActivated) {
-				planeY += 0.2;
-				firstPersonY += 0.2;
-				firstPcenterY += 0.2;
-			}
-			else {
-				planeY += 0.1;
-				firstPersonY += 0.1;
-				firstPcenterY += 0.1;
+		if (game) {
+			if (planeY <= 6) {
+				if (nitrousActivated) {
+					planeY += 0.2;
+					firstPersonY += 0.2;
+					firstPcenterY += 0.2;
+				}
+				else {
+					planeY += 0.1;
+					firstPersonY += 0.1;
+					firstPcenterY += 0.1;
+				}
 			}
 		}
 		//planeAngX -= 0.7;
 		break;
 	case GLUT_KEY_DOWN:
-		if (planeY >= -1) {
-			if (nitrousActivated) {
-				planeY -= 0.2;
-				firstPersonY -= 0.2;
-				firstPcenterY -= 0.2;
-			}
-			else {
-				planeY -= 0.1;
-				firstPersonY -= 0.1;
-				firstPcenterY -= 0.1;
+		if (game) {
+			if (planeY >= -1) {
+				if (nitrousActivated) {
+					planeY -= 0.2;
+					firstPersonY -= 0.2;
+					firstPcenterY -= 0.2;
+				}
+				else {
+					planeY -= 0.1;
+					firstPersonY -= 0.1;
+					firstPcenterY -= 0.1;
+				}
 			}
 		}
 		//	planeAngX += 0.7;
@@ -390,8 +400,12 @@ void InitLightSource()
 	glLightfv(GL_LIGHT0, GL_SPECULAR, specular);
 
 	// Finally, define light source 0 position in World Space
-	GLfloat light_position[] = { 0.0f, 10.0f, 0.0f, 1.0f };
+	GLfloat light_position[] = { 0.0f, 10.0f, -30.0f, 1.0f };
 	glLightfv(GL_LIGHT0, GL_POSITION, light_position);
+
+	// Light intensity
+	GLfloat lightIntensity[] = { 0.4, 0.4, 0.4, 1.0f };
+	glLightfv(GL_LIGHT0, GL_AMBIENT, lightIntensity);
 }
 
 /* Material Configuration Function */
@@ -407,10 +421,12 @@ void InitMaterial()
 	// Will be applied to all objects
 	GLfloat specular[] = { 1.0f, 1.0f, 1.0f, 1.0f };
 	glMaterialfv(GL_FRONT, GL_SPECULAR, specular);
+	glMaterialfv(GL_BACK, GL_SPECULAR, specular);
 
 	// Set Material's Shine value (0->128)
 	GLfloat shininess[] = { 96.0f };
 	glMaterialfv(GL_FRONT, GL_SHININESS, shininess);
+	glMaterialfv(GL_BACK, GL_SHININESS, shininess);
 }
 
 /* Animation Function */
@@ -434,151 +450,152 @@ void Anim() {
 	// z = 1 -> 0.7 
 	// y = 2 -> 1.4
 
-	// first asteroid collision
-	if (asteroid1) {
-		if (((0.116 + a1x >= planeX - 1.6  && 0.116 + a1x <= planeX + 1.6) || (1.024 + a1x >= planeX - 1.6 && 1.024 + a1x <= planeX + 1.6))
-			&&
-			((-2.55 + a1y >= planeY - 3.4 && -2.55 + a1y <= planeY - 2.6) || (-1.85 + a1y >= planeY - 3.4 && -1.85 + a1y <= planeY - 2.6))
-			&&
-			((-0.35 + a1z >= 7.8 && -0.35 + a1z <= 12.2) || (0.35 + a1z >= 7.8 && 0.35 + a1z <= 12.2))) {
-			printf("%s\n", "d5l");
-			a1t = 0.0;
-			a1z = -30;
+	if (game) {
 
-			if (!shieldActivated) {
-				numOfLives--;
-				score -= 20;
+		// first asteroid collision
+		if (asteroid1) {
+			if (((0.116 + a1x >= planeX - 1.6  && 0.116 + a1x <= planeX + 1.6) || (1.024 + a1x >= planeX - 1.6 && 1.024 + a1x <= planeX + 1.6))
+				&&
+				((-2.55 + a1y >= planeY - 3.4 && -2.55 + a1y <= planeY - 2.6) || (-1.85 + a1y >= planeY - 3.4 && -1.85 + a1y <= planeY - 2.6))
+				&&
+				((-0.35 + a1z >= 7.8 && -0.35 + a1z <= 12.2) || (0.35 + a1z >= 7.8 && 0.35 + a1z <= 12.2))) {
+				printf("%s\n", "d5l");
+				asteroid1 = false;
+				a1z = -30;
+				if (!shieldActivated) {
+					numOfLives--;
+					score -= 20;
+				}
 			}
 		}
-	}
 
-	//// second asteroid collision
-	if (asteroid2) {
-		if (((1.43 + a2x >= planeX - 1.6 && 1.43 + a2x <= planeX + 1.6) || (2.57 + a2x >= planeX - 1.6 && 2.57 + a2x <= planeX + 1.6))
-			&&
-			((-2.2 >= planeY - 3.4 && -2.2 <= planeY - 2.6) || (-2.2 >= planeY - 3.4 && -2.2 <= planeY - 2.6))
-			&&
-			((-0.35 + a2z >= 7.8 && -0.35 + a2z <= 12.2) || (0.35 + a2z >= 7.8 && 0.35 + a2z <= 12.2))) {
-			printf("%s\n", "d5l asr");
-			a2t = 0.0;
-			a2z = -30;
-			if (!shieldActivated) {
-				numOfLives--;
-				score -= 20;
+		// second asteroid collision
+		if (asteroid2) {
+			if (((1.43 + a2x >= planeX - 1.6 && 1.43 + a2x <= planeX + 1.6) || (2.57 + a2x >= planeX - 1.6 && 2.57 + a2x <= planeX + 1.6))
+				&&
+				((-2.2 >= planeY - 3.4 && -2.2 <= planeY - 2.6) || (-2.2 >= planeY - 3.4 && -2.2 <= planeY - 2.6))
+				&&
+				((-0.35 + a2z >= 7.8 && -0.35 + a2z <= 12.2) || (0.35 + a2z >= 7.8 && 0.35 + a2z <= 12.2))) {
+				printf("%s\n", "d5l asr");
+				asteroid2 = false;
+				a2z = -30;
+				if (!shieldActivated) {
+					numOfLives--;
+					score -= 20;
+				}
 			}
 		}
-	}
 
 
-	//Third asteroid collision
-	if (asteroid3) {
-		if ((( a3x-2.57-0.454 >= planeX - 1.6 && a3x-2.57-0.454 <= planeX + 1.6) || (a3x-2.57+0.454 >= planeX - 1.6 && a3x-2.57+0.454 <= planeX + 1.6))
-			&&
-			((a3y-0.35-2 >= planeY - 3.4 && a3y-0.35-2 <= planeY - 2.6) || (a3y+0.35-2 >= planeY - 3.4 && a3y+0.35-2 <= planeY - 2.6))
-			&&
-			(( a3z-0.34 >= 7.8 &&  a3z-0.34 <= 12.2) || ( a3z+0.34 >= 7.8 && a3z+0.34 <= 12.2))) {
-			printf("%s\n", "d5l as3");
-			a3t = 0.0;
-			a3z = -30;
-			if (!shieldActivated) {
-				numOfLives--;
-				score -= 20;
+		//Third asteroid collision
+		if (asteroid3) {
+			if (((a3x - 2.57 - 0.454 >= planeX - 1.6 && a3x - 2.57 - 0.454 <= planeX + 1.6) || (a3x - 2.57 + 0.454 >= planeX - 1.6 && a3x - 2.57 + 0.454 <= planeX + 1.6))
+				&&
+				((a3y - 0.35 - 2 >= planeY - 3.4 && a3y - 0.35 - 2 <= planeY - 2.6) || (a3y + 0.35 - 2 >= planeY - 3.4 && a3y + 0.35 - 2 <= planeY - 2.6))
+				&&
+				((a3z - 0.34 >= 7.8 &&  a3z - 0.34 <= 12.2) || (a3z + 0.34 >= 7.8 && a3z + 0.34 <= 12.2))) {
+				printf("%s\n", "d5l as3");
+				asteroid3 = false;
+				a3z = -30;
+				if (!shieldActivated) {
+					numOfLives--;
+					score -= 20;
+				}
 			}
 		}
-	}
 
 
-	//	FOURTH asteroid collision
-	if (asteroid4) {
-		if ((( a4x-0.454 >= planeX - 1.6 && a4x-0.454 <= planeX + 1.6) || (a4x+0.454 >= planeX - 1.6 && a4x+0.454 <= planeX + 1.6))
-			&&
-			((a4y-0.35 >= planeY - 3.4 && a4y-0.35 <= planeY - 2.6) || (a4y+0.35 >= planeY - 3.4 && a4y+0.35 <= planeY - 2.6))
-			&&
-			(( a4z-0.34 >= 7.8 &&  a4z-0.34 <= 12.2) || ( a4z+0.34 >= 7.8 && a4z+0.34 <= 12.2))) {
-			printf("%s\n", "d5l as4");
-			a4t = 0.0;
-			a4z = -30;
-			if (!shieldActivated) {
-				numOfLives--;
-				score -= 20;
+		//	FOURTH asteroid collision
+		if (asteroid4) {
+			if (((a4x - 0.454 >= planeX - 1.6 && a4x - 0.454 <= planeX + 1.6) || (a4x + 0.454 >= planeX - 1.6 && a4x + 0.454 <= planeX + 1.6))
+				&&
+				((a4y - 0.35 >= planeY - 3.4 && a4y - 0.35 <= planeY - 2.6) || (a4y + 0.35 >= planeY - 3.4 && a4y + 0.35 <= planeY - 2.6))
+				&&
+				((a4z - 0.34 >= 7.8 &&  a4z - 0.34 <= 12.2) || (a4z + 0.34 >= 7.8 && a4z + 0.34 <= 12.2))) {
+				printf("%s\n", "d5l as4");
+				asteroid4 = false;
+				a4z = -30;
+				if (!shieldActivated) {
+					numOfLives--;
+					score -= 20;
+				}
 			}
 		}
-	}
 
-	//	LIFE Collision
-	if (life) {
-		if (((lx - 0.6 >= planeX - 1.6 && lx - 0.6 <= planeX + 1.6) || (lx + 0.6 >= planeX - 1.6 && lx + 0.6 <= planeX + 1.6))
-			&&
-			((ly +1- 0.15 >= planeY - 3.4 && ly+1 - 0.15 <= planeY - 2.6) || (ly+1 + 0.15 >= planeY - 3.4 && ly+1 + 0.15 <= planeY - 2.6))
-			&&
-			((lz- 0.825 >= 7.8 &&  lz - 0.825 <= 12.2) || (lz + 0.825 >= 7.8 && lz + 0.825 <= 12.2))) {
-			printf("%s\n", "d5l life");
-			lt = 0.0;
-			lz = -30;
-			if (!shieldActivated) {
-				numOfLives--;
-				score -= 20;
+		// Life Collision
+		if (life) {
+			if (((lx - 0.6 >= planeX - 1.6 && lx - 0.6 <= planeX + 1.6) || (lx + 0.6 >= planeX - 1.6 && lx + 0.6 <= planeX + 1.6))
+				&&
+				((ly + 1 - 0.15 >= planeY - 3.4 && ly + 1 - 0.15 <= planeY - 2.6) || (ly + 1 + 0.15 >= planeY - 3.4 && ly + 1 + 0.15 <= planeY - 2.6))
+				&&
+				((lz - 0.825 >= 7.8 &&  lz - 0.825 <= 12.2) || (lz + 0.825 >= 7.8 && lz + 0.825 <= 12.2))) {
+				printf("%s\n", "d5l life");
+				life = false;
+				lz = -30;
+				if (!shieldActivated) {
+					numOfLives--;
+					score -= 20;
+				}
 			}
 		}
-	}
 
-	// shield collision
-	if (shield) {
-		if (((-0.6 >= planeX - 1.6  && -0.6 <= planeX + 1.6) || (0.6 >= planeX - 1.6 && 0.6 <= planeX + 1.6))
-			&&
-			((shy >= planeY - 3.4 && shy <= planeY - 2.6) || (shy + 1.2 >= planeY - 3.4 && shy + 1.2 <= planeY - 2.6))
-			&&
-			((-0.1 + shz >= 7.8 && -0.1 + shz <= 12.2) || (0.1 + shz >= 7.8 && 0.1 + shz <= 12.2))) {
-			printf("%s\n", "d5l shield");
-			shieldActivated = true;
-			shy = (rand() % 7) - 3;
-			shz = -30;
+		// shield collision
+		if (shield) {
+			if (((-0.6 >= planeX - 1.6  && -0.6 <= planeX + 1.6) || (0.6 >= planeX - 1.6 && 0.6 <= planeX + 1.6))
+				&&
+				((shy >= planeY - 3.4 && shy <= planeY - 2.6) || (shy + 1.2 >= planeY - 3.4 && shy + 1.2 <= planeY - 2.6))
+				&&
+				((-0.1 + shz >= 7.8 && -0.1 + shz <= 12.2) || (0.1 + shz >= 7.8 && 0.1 + shz <= 12.2))) {
+				printf("%s\n", "d5l shield");
+				shieldActivated = true;
+				shield = false;
+				shz = -30;
+			}
 		}
-	}
 
-	// nitrous collision
-	if (nitrous) {
-		if (((nx - 0.35 >= planeX - 1.6  && nx - 0.35 <= planeX + 1.6) || (nx + 0.35 >= planeX - 1.6 && nx + 0.35 <= planeX + 1.6))
-			&&
-			((-0.7 >= planeY - 3.4 && -0.7 <= planeY - 2.6) || (0.7 >= planeY - 3.4 && 0.7 <= planeY - 2.6))
-			&&
-			((nz - 0.35 >= 7.8 && nz - 0.35 <= 12.2) || (0.35 + nz >= 7.8 && 0.35 + nz <= 12.2))) {
-			printf("%s\n", "d5l nitrous");
-			nitrousActivated = true;
-			nx = (rand() % 7) - 3;
-			nz = -30;
+		// nitrous collision
+		if (nitrous) {
+			if (((nx - 0.35 >= planeX - 1.6  && nx - 0.35 <= planeX + 1.6) || (nx + 0.35 >= planeX - 1.6 && nx + 0.35 <= planeX + 1.6))
+				&&
+				((-0.7 >= planeY - 3.4 && -0.7 <= planeY - 2.6) || (0.7 >= planeY - 3.4 && 0.7 <= planeY - 2.6))
+				&&
+				((nz - 0.35 >= 7.8 && nz - 0.35 <= 12.2) || (0.35 + nz >= 7.8 && 0.35 + nz <= 12.2))) {
+				printf("%s\n", "d5l nitrous");
+				nitrousActivated = true;
+				nitrous = false;
+				nz = -30;
+			}
 		}
+
+		// shield count down
+		if (shieldActivated) {
+			shieldCountDown--;
+			if (shieldCountDown <= 0) {
+				shieldCountDown = 3000;
+				shieldActivated = false;
+			}
+		}
+
+		// nitrous count down
+		if (nitrousActivated) {
+			nitrousCountDown--;
+			if (nitrousCountDown <= 0) {
+				nitrousCountDown = 3000;
+				nitrousActivated = false;
+			}
+		}
+
+		// checking player score
+		if (score >= 5000) {
+			game = false;
+			won = true;
+		}
+
 	}
-
-
-	// checking player score
-	if (score >= 5000) {
-		game = false;
-		won = true;
-	}
-
 	// checking player number of lives
 	if (numOfLives == 0) {
 		lose = true;
 		game = false;
-	}
-
-	// shield count down
-	if (shieldActivated) {
-		shieldCountDown--;
-		if (shieldCountDown <= 0) {
-			shieldCountDown = 3000;
-			shieldActivated = false;
-		}
-	}
-
-	// nitrous count down
-	if (nitrousActivated) {
-		nitrousCountDown--;
-		if (nitrousCountDown <= 0) {
-			nitrousCountDown = 3000;
-			nitrousActivated = false;
-		}
 	}
 
 	glutPostRedisplay();
@@ -594,138 +611,189 @@ void Timer(int value) {
 	}
 
 	/***********************FIRST ASTEROID ANIMATION**********************/
-	if (seconds >= 50) {
+	if (seconds >= 0) {
 		if (asteroid1) {
-			//printf("%f\n", a1z);
-			if (a1z >= 30) {
-
-				//printf("%s\n", "d5l");
-				a1z = -30;
+			a1z += 0.05;
+			if (a1t >= 1) {
+				a1t = 0.0;
 			}
-			else
-			{
-				a1z += 0.05;
-				if (a1t >= 1) {
-					a1t = 0.0;
-				}
-				else {
-					a1t += 0.005;
+			else {
+				a1t += 0.005;
 
-					float* b = bezier(a1t, a10, a11, a12, a13);
-					a1x = b[0];
-					a1y = b[1];
-				}
+				float* b = bezier(a1t, a10, a11, a12, a13);
+				a1x = b[0];
+				a1y = b[1];
 			}
 		}
 	}
 
 	/***********************SECOND ASTEROID ANIMATION**********************/
-	if (seconds >= 200) {
+	if (seconds >= 250) {
 		if (asteroid2) {
-			if (a2z >= 30)
-			{
-				a2z = -30;
-			}
-			else
-			{
-				a2t = a2t + 0.01;
-				a2z += 0.05;
-				a2x = (sin(a2t*1.15) * 6) / 3;
-			}
+			a2t = a2t + 0.01;
+			a2z += 0.05;
+			a2x = (sin(a2t*1.15) * 6) / 3;
 		}
 	}
 
 	/***********************THIRD ASTEROID ANIMATION**********************/
-	if (seconds >= 300) {
+	if (seconds >= 500) {
 		if (asteroid3) {
-			//printf("%f\n", a1z);
-			if (a3z >= 30) {
-				a3y = (rand() % 7) - 3;
-				a3z = -30;
+			a3z += 0.05;
+			if (a3t >= 1) {
+				a3t = 0.0;
 			}
-			else
-			{
-				a3z += 0.05;
-				if (a3t >= 1) {
-					a3t = 0.0;
-				}
-				else {
-					a3t += 0.005;
+			else {
+				a3t += 0.005;
 
-					float* b = bezier(a3t, a30, a31, a32, a33);
-					a3x = b[0];
-				}
+				float* b = bezier(a3t, a30, a31, a32, a33);
+				a3x = b[0];
 			}
 		}
 	}
 
 	/***********************FOURTH ASTEROID ANIMATION**********************/
-	if (seconds >= 400) {
+	if (seconds >= 750) {
 		if (asteroid4) {
-			//printf("%f\n", a1z);
-			if (a4z >= 30) {
-				a4x = (rand() % 7) - 3;
-				a4z = -30;
+			a4z += 0.05;
+			if (a4t >= 1) {
+				a4t = 0.0;
 			}
-			else
-			{
-				a4z += 0.05;
-				if (a4t >= 1) {
-					a4t = 0.0;
-				}
-				else {
-					a4t += 0.005;
+			else {
+				a4t += 0.005;
 
-					float* b = bezier(a4t, a40, a41, a42, a43);
-					a4y = b[0];
-				}
+				float* b = bezier(a4t, a40, a41, a42, a43);
+				a4y = b[0];
 			}
 		}
+	}
+
+	if (seconds == 1000) {
+		a1z = -30;
+		asteroid1 = true;
+	}
+
+	if (seconds == 1250) {
+		a2z = -30;
+		asteroid2 = true;
 	}
 
 	/***********************SHIELD ANIMATION*********************************/
-	if (seconds >= 500) {
+	if (seconds >= 1500) {
 		if (shield) {
-			if (shz >= 30) {
-				shy = (rand() % 7) - 3;
-				shz = -30;
-			}
-			else {
-				shz += 0.05;
-			}
+			shz += 0.05;
 		}
+	}
+
+	if (seconds == 1750) {
+		a3z = -30;
+		a3y = (rand() % 7) - 3;
+		asteroid3 = true;
+	}
+
+	if (seconds == 2000) {
+		a4z = -30;
+		a4x = (rand() % 7) - 3;
+		asteroid4 = true;
+	}
+
+	if (seconds == 2250) {
+		a1z = -30;
+		asteroid1 = true;
+	}
+
+	if (seconds == 2500) {
+		a2z = -30;
+		asteroid2 = true;
+	}
+
+	if (seconds == 2750) {
+		a3z = -30;
+		a3y = (rand() % 7) - 3;
+		asteroid3 = true;
+	}
+
+	if (seconds == 3000) {
+		a4z = -30;
+		a4x = (rand() % 7) - 3;
+		asteroid4 = true;
 	}
 
 	/***********************NITROUS ANIMATION*********************************/
-	if (seconds >= 600) {
+	if (seconds >= 3250) {
 		if (nitrous) {
 			nrot += 3;
-			if (nz >= 30) {
-				nx = (rand() % 7) - 3;
-				nz = -30;
-			}
-			else {
-				nz += 0.05;
-			}
+			nz += 0.05;
 		}
 	}
 
+	if (seconds == 3500) {
+		a1z = -30;
+		asteroid1 = true;
+	}
+
+	if (seconds == 3750) {
+		a2z = -30;
+		asteroid2 = true;
+	}
+
+	if (seconds == 4000) {
+		a3z = -30;
+		a3y = (rand() % 7) - 3;
+		asteroid3 = true;
+	}
+
+	if (seconds == 4250) {
+		a4z = -30;
+		a4x = (rand() % 7) - 3;
+		asteroid4 = true;
+	}
+
+	if (seconds == 4500) {
+		a1z = -30;
+		asteroid1 = true;
+	}
+
+	if (seconds == 4750) {
+		a2z = -30;
+		asteroid2 = true;
+	}
+
 	/***********************LIFE ANIMATION*********************************/
-	if (seconds >= 700) {
+	if (seconds >= 5000) {
 		if (life) {
 			lAngle++;
-			if (lz >= 22) {
-				lz = -30;
-			}
-			else
-			{
-				lt = lt + 0.01;
-				lz += 0.05;
-				ly = (cos(lt*1.15) * 6) / 3;
-				lx = (sin(lt*3.15) * 2) / 3;
-
-			}
+			lt = lt + 0.01;
+			lz += 0.05;
+			ly = (cos(lt*1.15) * 6) / 3;
+			lx = (sin(lt*3.15) * 2) / 3;
 		}
+	}
+
+	if (seconds >= 6000) {
+		seconds = 0;
+
+		// reseting booleans
+		asteroid1 = true;
+		asteroid2 = true;
+		asteroid3 = true;
+		asteroid4 = true;
+		life = true;
+		nitrous = true;
+		shield = true;
+
+		// reseting positions
+		a1z = -30;
+		a2z = -30;
+		a3z = -30;
+		a3y = (rand() % 7) - 3;
+		a4z = -30;
+		a4x = (rand() % 7) - 3;
+		shz = -30;
+		shy = (rand() % 7) - 3;
+		nz = -30;
+		nx = (rand() % 7) - 3;
+		lz = -30;
 	}
 
 	glutPostRedisplay();
@@ -784,13 +852,11 @@ void drawNitrous() {
 
 /* While Player in Game Function */
 void inGame() {
-
 	glPushMatrix();
 	glColor3f(1, 1, 1);
 	char* text[10];
 	sprintf((char *)text, "score:%d", score);
 	print(-5.7, 5.3, 10, (char *)text);
-	glColor3f(1, 1, 1);
 	glPopMatrix();
 
 	glColor3f(1, 1, 1);
@@ -805,10 +871,11 @@ void inGame() {
 
 	//life plane model
 	glPushMatrix();
+	glColor3f(1, 0, 0);
 	glTranslatef(lx, ly + 1, lz);
-	glScalef(0.006, 0.006, 0.006);
-	glRotated(lAngle, 0, 0, 1);
-	model_plane2.Draw();
+	glRotated(lAngle, 0, 1, 0);
+	glScalef(0.7, 0.7, 0.7);
+	model_life.Draw();
 	glPopMatrix();
 
 	// nitrous
@@ -839,7 +906,7 @@ void inGame() {
 	model_asteroid.Draw();
 	glPopMatrix();
 
-	//// Asteroid 2
+	// Asteroid 2
 	glPushMatrix();
 	glColor3f(1, 0, 0);
 	glTranslatef(a2x + 2.57, -2.2, a2z);
@@ -850,7 +917,7 @@ void inGame() {
 	// Asteroid 3
 	glPushMatrix();
 	glColor3f(1, 0, 1);
-	glTranslatef(a3x - 2.57, a3y-2, a3z);
+	glTranslatef(a3x - 2.57, a3y - 2, a3z);
 	glScalef(asteroidScale, asteroidScale, asteroidScale);
 	model_asteroid.Draw();
 	glPopMatrix();
@@ -906,16 +973,12 @@ void myDisplay(void)
 {
 	setupCamera();
 	InitLightSource();
-	//InitMaterial();
+	InitMaterial();
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-	/*GLfloat lightIntensity[] = { 0.7, 0.7, 0.7, 1.0f };
-	GLfloat lightPosition[] = { 0.0f, 100.0f, 0.0f, 0.0f };
-	glLightfv(GL_LIGHT0, GL_POSITION, lightPosition);
-	glLightfv(GL_LIGHT0, GL_AMBIENT, lightIntensity);*/
 
 	//space box
 	glPushMatrix();
+
 	GLUquadricObj * qobj;
 	qobj = gluNewQuadric();
 	glRotated(90, 1, 0, 1);
@@ -992,10 +1055,10 @@ void main(int argc, char** argv)
 	a10[0] = 0.0;
 	a10[1] = 0.0;
 
-	a11[0] = -5.0;
+	a11[0] = -8.0;
 	a11[1] = 3.0;
 
-	a12[0] = 5.0;
+	a12[0] = 8.0;
 	a12[1] = 3.0;
 
 	a13[0] = 0.0;
@@ -1006,7 +1069,7 @@ void main(int argc, char** argv)
 
 	a31[0] = -3.0;
 
-	a32[0] = 8.0;
+	a32[0] = 10.0;
 
 	a33[0] = 0.0;
 
