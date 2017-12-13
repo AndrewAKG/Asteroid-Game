@@ -122,6 +122,15 @@ float l1[2];
 float l2[2];
 float l3[2];
 
+// Light controllers
+float cutOff = 70.0;
+float exponent = 90.0;
+bool cutOffSwitch = false;
+bool light1 = true;
+bool light2 = true;
+bool light3 = true;
+bool light4 = true;
+
 // Game Controllers
 int score = 0;
 int numOfLives = 3;
@@ -287,7 +296,7 @@ void LoadAssets()
 	//Loading texture files
 	loadBMP(&tex, "textures/space.bmp", true);
 	loadBMP(&tex2, "textures/logo.bmp", true);
-	loadBMP(&tex3, "textures/sun.bmp", true);
+	loadBMP(&tex3, "textures/planet_texture.bmp", true);
 }
 
 /* Keyboard Function */
@@ -411,28 +420,62 @@ void InitLightSource()
 	glEnable(GL_LIGHTING);
 
 	// Enable Light Source number 0
-	// OpengL has 8 light sources
 	glEnable(GL_LIGHT0);
 
-	// Define Light source 0 ambient light
-	GLfloat ambient[] = { 0.1f, 0.1f, 0.1, 1.0f };
-	glLightfv(GL_LIGHT0, GL_AMBIENT, ambient);
+	GLfloat specular0[] = { 1.0f, 1.0f, 1.0f, 1.0f };
+	GLfloat light_position0[] = { 0.0f, -10.0f, 10.0f, 1.0f };
+	GLfloat l0Direction[] = { 0.0, 2.0, 0.0 };
+	glLightfv(GL_LIGHT0, GL_SPECULAR, specular0);
+	glLightfv(GL_LIGHT0, GL_POSITION, light_position0);
+	glLightfv(GL_LIGHT0, GL_SPOT_DIRECTION, l0Direction);
 
-	// Define Light source 0 diffuse light
-	GLfloat diffuse[] = { 0.5f, 0.5f, 0.5f, 1.0f };
-	glLightfv(GL_LIGHT0, GL_DIFFUSE, diffuse);
 
-	// Define Light source 0 Specular light
-	GLfloat specular[] = { 1.0f, 1.0f, 1.0f, 1.0f };
-	glLightfv(GL_LIGHT0, GL_SPECULAR, specular);
+	GLfloat lightIntensity0[] = { 0.4, 0.4, 0.4, 1.0f };
+	glLightfv(GL_LIGHT0, GL_AMBIENT, lightIntensity0);
 
-	// Finally, define light source 0 position in World Space
-	GLfloat light_position[] = { 0.0f, 10.0f, -30.0f, 1.0f };
-	glLightfv(GL_LIGHT0, GL_POSITION, light_position);
+	glEnable(GL_LIGHT1);
 
-	// Light intensity
-	GLfloat lightIntensity[] = { 0.4, 0.4, 0.4, 1.0f };
-	glLightfv(GL_LIGHT0, GL_AMBIENT, lightIntensity);
+	GLfloat l1Diffuse[] = { 1.0f, 1.0f, 1.0f, 1.0f };
+	GLfloat l1Position[] = { 0.0f, 15.0f, -20.0f, light1 };
+	GLfloat l1Direction[] = { 0.0, -1.0, 0.0 };
+	glLightfv(GL_LIGHT1, GL_DIFFUSE, l1Diffuse);
+	glLightfv(GL_LIGHT1, GL_POSITION, l1Position);
+	glLightf(GL_LIGHT1, GL_SPOT_CUTOFF, cutOff);
+	glLightf(GL_LIGHT1, GL_SPOT_EXPONENT, exponent);
+	glLightfv(GL_LIGHT1, GL_SPOT_DIRECTION, l1Direction);
+
+	glEnable(GL_LIGHT2);
+
+	GLfloat l2Diffuse[] = { 1.0f, 1.0f, 1.0f, 1.0f };
+	GLfloat l2Position[] = { 15.0f, 0.0f, -20.0f, light2 };
+	GLfloat l2Direction[] = { -1.0, 0.0, 0.0 };
+	glLightfv(GL_LIGHT2, GL_DIFFUSE, l2Diffuse);
+	glLightfv(GL_LIGHT2, GL_POSITION, l2Position);
+	glLightf(GL_LIGHT2, GL_SPOT_CUTOFF, cutOff);
+	glLightf(GL_LIGHT2, GL_SPOT_EXPONENT, exponent);
+	glLightfv(GL_LIGHT2, GL_SPOT_DIRECTION, l2Direction);
+
+	glEnable(GL_LIGHT3);
+
+	GLfloat l3Diffuse[] = { 1.0f, 1.0f, 1.0f, 1.0f };
+	GLfloat l3Position[] = { -15.0f, 0.0f, -20.0f, light3 };
+	GLfloat l3Direction[] = { 1.0, 0.0, 0.0 };
+	glLightfv(GL_LIGHT3, GL_DIFFUSE, l3Diffuse);
+	glLightfv(GL_LIGHT3, GL_POSITION, l3Position);
+	glLightf(GL_LIGHT3, GL_SPOT_CUTOFF, cutOff);
+	glLightf(GL_LIGHT3, GL_SPOT_EXPONENT, exponent);
+	glLightfv(GL_LIGHT3, GL_SPOT_DIRECTION, l3Direction);
+
+	glEnable(GL_LIGHT4);
+
+	GLfloat l4Diffuse[] = { 1.0f, 1.0f, 1.0f, 1.0f };
+	GLfloat l4Position[] = { 0.0f, -15.0f, -20.0f, light4 };
+	GLfloat l4Direction[] = { 0.0, 1.0, 0.0 };
+	glLightfv(GL_LIGHT4, GL_DIFFUSE, l4Diffuse);
+	glLightfv(GL_LIGHT4, GL_POSITION, l4Position);
+	glLightf(GL_LIGHT4, GL_SPOT_CUTOFF, cutOff);
+	glLightf(GL_LIGHT4, GL_SPOT_EXPONENT, exponent);
+	glLightfv(GL_LIGHT4, GL_SPOT_DIRECTION, l4Direction);
 }
 
 /* Material Configuration Function */
@@ -689,6 +732,25 @@ void Timer(int value) {
 	if (camera360) {
 		cameraAngle++;
 	}
+
+	/************************LIGHT ANIMATION****************************/
+	if (cutOff <= 0) {
+		cutOffSwitch = true;
+	}
+	if (cutOff >= 60) {
+		cutOffSwitch = false;
+	}
+	if (cutOffSwitch) {
+		cutOff += 0.1;
+	}
+	else {
+		cutOff -= 0.1;
+	}
+
+	light1 = !light1;
+	light2 = !light2;
+	light3 = !light3;
+	light4 = !light4;
 
 	/***********************FIRST ASTEROID ANIMATION**********************/
 	if (seconds >= 0) {
