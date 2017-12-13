@@ -551,9 +551,9 @@ void Anim() {
 
 		//	FIFTH asteroid collision
 		if (asteroid5) {
-			if (((a5x - 0.454-2.5 >= planeX - 1.6 && a5x - 0.454 - 2.5 <= planeX + 1.6) || (a5x + 0.454 - 2.5 >= planeX - 1.6 && a5x + 0.454 - 2.5 <= planeX + 1.6))
+			if (((a5x - 2.954 >= planeX - 1.6 && a5x - 2.954 <= planeX + 1.6) || (a5x - 2.046 >= planeX - 1.6 && a5x - 2.046 <= planeX + 1.6))
 				&&
-				((a5y - 0.35 - 1.7 >= planeY - 3.4 && a5y - 0.35 - 1.7 <= planeY - 2.6) || (a5y + 0.35 - 1.7 >= planeY - 3.4 && a5y + 0.35 - 1.7 <= planeY - 2.6))
+				((a5y - 2.05 >= planeY - 3.4 && a5y - 2.05 <= planeY - 2.6) || (a5y -1.35 >= planeY - 3.4 && a5y - 1.35  <= planeY - 2.6))
 				&&
 				((a5z - 0.34 >= 7.8 &&  a5z - 0.34 <= 12.2) || (a5z + 0.34 >= 7.8 && a5z + 0.34 <= 12.2))) {
 				printf("%s\n", "d5l as5");
@@ -568,9 +568,9 @@ void Anim() {
 
 		//	SIXTH asteroid collision
 		if (asteroid6) {
-			if (((-a6x - 0.454 - 0.5 >= planeX - 1.6 && -a6x - 0.454 - 0.5 <= planeX + 1.6) || (-a6x + 0.454 - 0.5 >= planeX - 1.6 && -a6x + 0.454 - 0.5 <= planeX + 1.6))
+			if (((-a6x - 0.954 >= planeX - 1.6 && -a6x - 0.954 <= planeX + 1.6) || (-a6x - 0.046 >= planeX - 1.6 && -a6x - 0.046 <= planeX + 1.6))
 				&&
-				((-a6y - 0.35 + 1.8 >= planeY - 3.4 && -a6y - 0.35 + 1.8 <= planeY - 2.6) || (-a6y + 0.35 + 1.8 >= planeY - 3.4 && -a6y + 0.35 + 1.8 <= planeY - 2.6))
+				((-a6y + 1.45 >= planeY - 3.4 && -a6y + 1.45 <= planeY - 2.6) || (-a6y + 2.15 >= planeY - 3.4 && -a6y + 2.15 <= planeY - 2.6))
 				&&
 				((a6z - 0.34 >= 7.8 &&  a6z - 0.34 <= 12.2) || (a6z + 0.34 >= 7.8 && a6z + 0.34 <= 12.2))) {
 				printf("%s\n", "d5l as6");
@@ -708,7 +708,7 @@ void Timer(int value) {
 	}
 
 	/***********************SECOND ASTEROID ANIMATION**********************/
-	if (seconds >= 250) {
+	if (seconds >= 150) {
 		if (asteroid2) {
 			a2t = a2t + 0.01;
 			a2z += 0.05;
@@ -717,7 +717,7 @@ void Timer(int value) {
 	}
 
 	/***********************THIRD ASTEROID ANIMATION**********************/
-	if (seconds >= 500) {
+	if (seconds >= 300) {
 		if (asteroid3) {
 			a3z += 0.05;
 			if (a3t >= 1) {
@@ -733,7 +733,7 @@ void Timer(int value) {
 	}
 
 	/***********************FOURTH ASTEROID ANIMATION**********************/
-	if (seconds >= 750) {
+	if (seconds >= 450) {
 		if (asteroid4) {
 			a4z += 0.05;
 			if (a4t >= 1) {
@@ -749,7 +749,7 @@ void Timer(int value) {
 	}
 
 	/***********************FIFTH ASTEROID ANIMATION**********************/
-	if (seconds >= 10) {
+	if (seconds >= 600) {
 		if (asteroid5) {
 			a5z += 0.05;
 			a5t = a5t + 0.01;
@@ -759,7 +759,7 @@ void Timer(int value) {
 	}
 
 	/***********************SIXTH ASTEROID ANIMATION**********************/
-	if (seconds >= 3200) {
+	if (seconds >= 750) {
 		if (asteroid6) {
 			a6z += 0.05;
 			if (a6t >= 1) {
@@ -776,102 +776,122 @@ void Timer(int value) {
 		}
 	}
 
-	if (seconds == 1000) {
+	if (seconds == 900) {
 		a1z = -30;
 		asteroid1 = true;
 	}
 
-	if (seconds == 1250) {
+	if (seconds == 1150) {
 		a2z = -30;
 		asteroid2 = true;
 	}
 
 	/***********************SHIELD ANIMATION*********************************/
-	if (seconds >= 1500) {
+	if (seconds >= 1300) {
 		if (shield) {
 			shz += 0.05;
 		}
 	}
 
 
-	if (seconds == 1750) {
+	if (seconds == 1450) {
 		a3z = -30;
 		a3y = (rand() % 7) - 3;
 		asteroid3 = true;
 	}
 
-	if (seconds == 2000) {
+	if (seconds == 1600) {
 		a4z = -30;
 		a4x = (rand() % 7) - 3;
 		asteroid4 = true;
 	}
 
-	if (seconds == 2250) {
-		a1z = -30;
-		asteroid1 = true;
+	if (seconds == 1750) {
+		a5z = -30;
+		a5x = (rand() % 11) - 3;
+		asteroid5 = true;
+	}
+
+	if(seconds == 1900){
 		a6z = -30;
 		asteroid6 = true;
 	}
 
-	if (seconds == 2500) {
+	if (seconds == 2050 ) {
+		a1z = -30;
+		asteroid1 = true;
+	}
+
+	if (seconds == 2200) {
 		a2z = -30;
 		asteroid2 = true;
 	}
 
-	if (seconds == 2750) {
+	if (seconds == 2350) {
 		a3z = -30;
 		a3y = (rand() % 7) - 3;
 		asteroid3 = true;
 	}
 
-	if (seconds == 3000) {
+	if (seconds == 2500) {
 		a4z = -30;
 		a4x = (rand() % 7) - 3;
 		asteroid4 = true;
 	}
 
 	/***********************NITROUS ANIMATION*********************************/
-	if (seconds >= 3250) {
+	if (seconds >= 2650) {
 		if (nitrous) {
 			nrot += 3;
 			nz += 0.05;
 		}
 	}
 
-	if (seconds == 3500) {
+	if (seconds == 2800) {
 		a1z = -30;
 		asteroid1 = true;
 	}
 
-	if (seconds == 3750) {
+	if (seconds == 2950) {
 		a2z = -30;
 		asteroid2 = true;
 	}
 
-	if (seconds == 4000) {
+	if (seconds == 3100) {
 		a3z = -30;
 		a3y = (rand() % 7) - 3;
 		asteroid3 = true;
 	}
 
-	if (seconds == 4250) {
+	if (seconds == 3250) {
 		a4z = -30;
 		a4x = (rand() % 7) - 3;
 		asteroid4 = true;
 	}
 
-	if (seconds == 4500) {
+	if (seconds == 3400) {
+		a5z = -30;
+		a5x = (rand() % 11) - 3;
+		asteroid5 = true;
+	}
+
+	if (seconds == 3550) {
+		a6z = -30;
+		asteroid6 = true;
+	}
+
+	if (seconds == 3700) {
 		a1z = -30;
 		asteroid1 = true;
 	}
 
-	if (seconds == 4750) {
+	if (seconds == 3950) {
 		a2z = -30;
 		asteroid2 = true;
 	}
 
 	/***********************LIFE ANIMATION*********************************/
-	if (seconds >= 5000) {
+	if (seconds >= 4100) {
 		if (life) {
 			lAngle++;
 			lt = lt + 0.01;
@@ -882,7 +902,7 @@ void Timer(int value) {
 	}
 
 
-	if (seconds >= 6000) {
+	if (seconds >= 5000) {
 		seconds = 0;
 		
 		// reseting booleans
