@@ -76,6 +76,25 @@ float a41[2];
 float a42[2];
 float a43[2];
 
+//FiFTH  asteroid controller variables
+bool asteroid5 = true;
+float a5t = 0.0;
+float a5x = (rand() % 7) - 3;
+float a5y = 0.0;
+float a5z = -30.0;
+
+
+//SIXTH asteroid controller variables
+bool asteroid6 = true;
+float a6t = 0.0;
+float a6x = 0.0;
+float a6y = 0.0;
+float a6z = -30.0;
+float a60[2];
+float a61[2];
+float a62[2];
+float a63[2];
+
 // shield controller variables
 bool shield = true;
 float shz = -30.0;
@@ -105,7 +124,7 @@ float l3[2];
 
 // Game Controllers
 int score = 0;
-int numOfLives = 5;
+int numOfLives = 10;
 bool won = false;
 bool lose = false;
 bool game = true;
@@ -131,7 +150,6 @@ Model_3DS model_shield;
 Model_3DS model_asteroid;
 Model_3DS model_winner;
 Model_3DS model_life;
-Model_3DS model_planet;
 
 // Textures
 GLTexture tex_ground;
@@ -264,8 +282,7 @@ void LoadAssets()
 	model_shield.Load("Models/shield/shield2/CaptainAmericasShield.3ds");
 	model_asteroid.Load("Models/asteroid-3DS.3DS");
 	model_winner.Load("Models/trophy.3ds");
-	model_life.Load("Models/Heart.3ds");
-	model_planet.Load("Models/earth.3DS");
+	//model_life.Load("Models/Heart.3ds");
 
 	//Loading texture files
 	loadBMP(&tex, "textures/space.bmp", true);
@@ -532,6 +549,40 @@ void Anim() {
 			}
 		}
 
+		//	FIFTH asteroid collision
+		if (asteroid5) {
+			if (((a5x - 0.454-2.5 >= planeX - 1.6 && a5x - 0.454 - 2.5 <= planeX + 1.6) || (a5x + 0.454 - 2.5 >= planeX - 1.6 && a5x + 0.454 - 2.5 <= planeX + 1.6))
+				&&
+				((a5y - 0.35 - 1.7 >= planeY - 3.4 && a5y - 0.35 - 1.7 <= planeY - 2.6) || (a5y + 0.35 - 1.7 >= planeY - 3.4 && a5y + 0.35 - 1.7 <= planeY - 2.6))
+				&&
+				((a5z - 0.34 >= 7.8 &&  a5z - 0.34 <= 12.2) || (a5z + 0.34 >= 7.8 && a5z + 0.34 <= 12.2))) {
+				printf("%s\n", "d5l as5");
+				asteroid5 = false;
+				a5z = -30;
+				if (!shieldActivated) {
+					numOfLives--;
+					score -= 20;
+				}
+			}
+		}
+
+		//	SIXTH asteroid collision
+		if (asteroid6) {
+			if (((-a6x - 0.454 - 0.5 >= planeX - 1.6 && -a6x - 0.454 - 0.5 <= planeX + 1.6) || (-a6x + 0.454 - 0.5 >= planeX - 1.6 && -a6x + 0.454 - 0.5 <= planeX + 1.6))
+				&&
+				((-a6y - 0.35 + 1.8 >= planeY - 3.4 && -a6y - 0.35 + 1.8 <= planeY - 2.6) || (-a6y + 0.35 + 1.8 >= planeY - 3.4 && -a6y + 0.35 + 1.8 <= planeY - 2.6))
+				&&
+				((a6z - 0.34 >= 7.8 &&  a6z - 0.34 <= 12.2) || (a6z + 0.34 >= 7.8 && a6z + 0.34 <= 12.2))) {
+				printf("%s\n", "d5l as6");
+				asteroid6 = false;
+				a6z = -30;
+				if (!shieldActivated) {
+					numOfLives--;
+					score -= 20;
+				}
+			}
+		}
+
 		// Life Collision
 		if (life) {
 			if (((lx - 0.6 >= planeX - 1.6 && lx - 0.6 <= planeX + 1.6) || (lx + 0.6 >= planeX - 1.6 && lx + 0.6 <= planeX + 1.6))
@@ -697,6 +748,34 @@ void Timer(int value) {
 		}
 	}
 
+	/***********************FIFTH ASTEROID ANIMATION**********************/
+	if (seconds >= 10) {
+		if (asteroid5) {
+			a5z += 0.05;
+			a5t = a5t + 0.01;
+			a5y = (cos(a5t*2) * 6) / 3;
+			
+		}
+	}
+
+	/***********************SIXTH ASTEROID ANIMATION**********************/
+	if (seconds >= 3200) {
+		if (asteroid6) {
+			a6z += 0.05;
+			if (a6t >= 1) {
+				a6t = 0.0;
+				//asteroid6 = false;
+			}
+			else {
+				a6t += 0.003;
+
+				float* b = bezier(a6t, a60, a61, a62, a63);
+				a6x = b[0];
+				a6y = b[1];
+			}
+		}
+	}
+
 	if (seconds == 1000) {
 		a1z = -30;
 		asteroid1 = true;
@@ -714,6 +793,7 @@ void Timer(int value) {
 		}
 	}
 
+
 	if (seconds == 1750) {
 		a3z = -30;
 		a3y = (rand() % 7) - 3;
@@ -729,6 +809,8 @@ void Timer(int value) {
 	if (seconds == 2250) {
 		a1z = -30;
 		asteroid1 = true;
+		a6z = -30;
+		asteroid6 = true;
 	}
 
 	if (seconds == 2500) {
@@ -799,14 +881,17 @@ void Timer(int value) {
 		}
 	}
 
+
 	if (seconds >= 6000) {
 		seconds = 0;
-
+		
 		// reseting booleans
 		asteroid1 = true;
 		asteroid2 = true;
 		asteroid3 = true;
 		asteroid4 = true;
+		asteroid5 = true;
+		asteroid6 = true;
 		life = true;
 		nitrous = true;
 		shield = true;
@@ -817,7 +902,10 @@ void Timer(int value) {
 		a3z = -30;
 		a3y = (rand() % 7) - 3;
 		a4z = -30;
-		a4x = (rand() % 7) - 3;
+		a4x = (rand() % 11) - 5;
+		a5z = -30;
+		a5x = (rand() % 7) - 3;
+		a6z = -30;
 		shz = -30;
 		shy = (rand() % 7) - 3;
 		nz = -30;
@@ -955,6 +1043,23 @@ void inGame() {
 	glPushMatrix();
 	glColor3f(0, 1, 1);
 	glTranslatef(a4x, a4y, a4z);
+	glScalef(asteroidScale, asteroidScale, asteroidScale);
+	model_asteroid.Draw();
+	glPopMatrix();
+
+	//Asteroid 5
+	glPushMatrix();
+	glColor3f(1,0.7,0.8);
+	glTranslatef(a5x-2.5, a5y-1.7, a5z);
+	glScalef(asteroidScale, asteroidScale, asteroidScale);
+	model_asteroid.Draw();
+	glPopMatrix();
+
+
+	//Asteroid 6
+	glPushMatrix();
+	glColor3f(0.6, 0, 0.298);
+	glTranslatef(-a6x-0.5 , -a6y+1.8 , a6z);
 	glScalef(asteroidScale, asteroidScale, asteroidScale);
 	model_asteroid.Draw();
 	glPopMatrix();
@@ -1148,6 +1253,19 @@ void main(int argc, char** argv)
 	a42[0] = 8.0;
 
 	a43[0] = 0.0;
+
+	// sixth asteroid bezier
+	a60[0] = 0.0;
+	a60[1] = 0.0;
+
+	a61[0] = -8.0;
+	a61[1] = 3.0;
+
+	a62[0] = 8.0;
+	a62[1] = 3.0;
+
+	a63[0] = 0.0;
+	a63[1] = 0.0;
 
 	// Life beziar
 	l0[0] = 0.0;
