@@ -8,6 +8,7 @@ int WIDTH = 1000;
 int HEIGHT = 700;
 
 #define DEG2RAD(a) (a * 0.0174532925)
+#define PI 3.14159265358979323846
 
 //Camera controller variables
 float cameraRadius = 15;
@@ -21,6 +22,8 @@ float firstPcenterX = 0.0;
 float firstPcenterY = 0.0;
 float firstPcenterZ = 0.0;
 bool cameraFirstPerson = false;
+float sceneZ = 0.0;
+float cameraZ = -40.0;
 
 // Plane Controller variables
 float planeX = 0.0;
@@ -102,13 +105,17 @@ float l3[2];
 
 // Game Controllers
 int score = 0;
-int numOfLives = 9;
+int numOfLives = 5;
 bool won = false;
 bool lose = false;
 bool game = true;
+float rotSun = 0.0;
+float collPlane = 0.0;
+bool scene = false;
 
 GLuint tex;
 GLuint tex2;
+GLuint tex3;
 GLUquadricObj * qobj;
 char title[] = "3D Model Loader Sample";
 
@@ -124,6 +131,7 @@ Model_3DS model_shield;
 Model_3DS model_asteroid;
 Model_3DS model_winner;
 Model_3DS model_life;
+Model_3DS model_planet;
 
 // Textures
 GLTexture tex_ground;
@@ -257,10 +265,12 @@ void LoadAssets()
 	model_asteroid.Load("Models/asteroid-3DS.3DS");
 	model_winner.Load("Models/trophy.3ds");
 	model_life.Load("Models/Heart.3ds");
+	model_planet.Load("Models/earth.3DS");
 
 	//Loading texture files
 	loadBMP(&tex, "textures/space.bmp", true);
 	loadBMP(&tex2, "textures/logo.bmp", true);
+	loadBMP(&tex3, "textures/sun.bmp", true);
 }
 
 /* Keyboard Function */
@@ -549,6 +559,7 @@ void Anim() {
 				printf("%s\n", "d5l shield");
 				shieldActivated = true;
 				shield = false;
+				//scene = true;
 				shz = -30;
 			}
 		}
@@ -563,12 +574,27 @@ void Anim() {
 				printf("%s\n", "d5l nitrous");
 				nitrousActivated = true;
 				nitrous = false;
+				//scene = true;
 				nz = -30;
 			}
 		}
 
 		// shield count down
 		if (shieldActivated) {
+			/*if (scene) {
+			sceneZ += 0.1;
+			}
+			if (sceneZ <= 8) {
+			if (sceneZ >= 7.0) {
+			scene = false;
+			}
+			}
+			else if (sceneZ <= 15) {
+			if (sceneZ >= 14.0) {
+			scene = false;
+			}
+			}*/
+
 			shieldCountDown--;
 			if (shieldCountDown <= 0) {
 				shieldCountDown = 3000;
@@ -578,6 +604,8 @@ void Anim() {
 
 		// nitrous count down
 		if (nitrousActivated) {
+
+
 			nitrousCountDown--;
 			if (nitrousCountDown <= 0) {
 				nitrousCountDown = 3000;
@@ -586,7 +614,7 @@ void Anim() {
 		}
 
 		// checking player score
-		if (score >= 5000) {
+		if (score >= 10000) {
 			game = false;
 			won = true;
 		}
@@ -603,6 +631,7 @@ void Anim() {
 
 /* Timer Function */
 void Timer(int value) {
+	rotSun++;
 	seconds++;
 	score++;
 	/************************CAMERA ANIMATION***************************/
@@ -978,20 +1007,58 @@ void myDisplay(void)
 
 	//space box
 	glPushMatrix();
-
-	GLUquadricObj * qobj;
-	qobj = gluNewQuadric();
+	glTranslated(0, 0, sceneZ);
+	/*glTranslated(0, 0, -80);
+	glRotated(rotSun, 0, 1, 0);*/
 	glRotated(90, 1, 0, 1);
+	qobj = gluNewQuadric();
 	glBindTexture(GL_TEXTURE_2D, tex);
 	gluQuadricTexture(qobj, true);
 	gluQuadricNormals(qobj, GL_SMOOTH);
 	gluSphere(qobj, 25, 100, 100);
 	gluDeleteQuadric(qobj);
-
 	glPopMatrix();
+
+	glPushMatrix();
+	glTranslated(0, 0, sceneZ);
+	glTranslated(0, 0, -22.5);
+	glRotated(rotSun, 0, 1, 0);
+	qobj = gluNewQuadric();
+	glBindTexture(GL_TEXTURE_2D, tex3);
+	gluQuadricTexture(qobj, true);
+	gluQuadricNormals(qobj, GL_SMOOTH);
+	gluSphere(qobj, 5, 100, 100);
+	gluDeleteQuadric(qobj);
+	glPopMatrix();
+
+	//space box
+	//glPushMatrix();
+	//glTranslated(0, 0, sceneZ);
+	//qobj = gluNewQuadric();
+	////glRotated(90, 1, 0, 0);
+	//glBindTexture(GL_TEXTURE_2D, tex);
+	//gluQuadricTexture(qobj, true);
+	//gluQuadricNormals(qobj, GL_SMOOTH);
+	//gluCylinder(qobj, 25, 25, 100, 100, 100);
+	//gluDeleteQuadric(qobj);
+	//glPopMatrix();
+
+	//space box
+	//glPushMatrix();
+	//glTranslated(0, 0, sceneZ);
+	//glTranslated(0, 0, -100);
+	//qobj = gluNewQuadric();
+	////glRotated(90, 1, 0, 0);
+	//glBindTexture(GL_TEXTURE_2D, tex);
+	//gluQuadricTexture(qobj, true);
+	//gluQuadricNormals(qobj, GL_SMOOTH);
+	//gluCylinder(qobj, 25, 25, 100, 100, 100);
+	//gluDeleteQuadric(qobj);
+	//glPopMatrix();
 
 	// large plane model
 	glPushMatrix();
+	//glTranslated(0, 0, sceneZ);
 	glTranslated(planeX, planeY, 0);
 	glRotated(planeAngX, 1, 0, 0);
 	glRotated(planeAngY, 0, 1, 0);
