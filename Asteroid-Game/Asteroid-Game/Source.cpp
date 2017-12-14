@@ -10,21 +10,6 @@ int HEIGHT = 700;
 #define DEG2RAD(a) (a * 0.0174532925)
 #define PI 3.14159265358979323846
 
-//Camera controller variables
-float cameraRadius = 15;
-float cameraAngle = 0.0;
-bool camera360 = false;
-float camy = 0.03;
-float firstPersonX = 0.0;
-float firstPersonY = -2.0;
-float firstPersonZ = 10.0;
-float firstPcenterX = 0.0;
-float firstPcenterY = 0.0;
-float firstPcenterZ = 0.0;
-bool cameraFirstPerson = false;
-float sceneZ = 0.0;
-float cameraZ = 0.0;
-
 // Plane Controller variables
 float planeX = 0.0;
 float planeY = 0.0;
@@ -124,9 +109,28 @@ bool light2 = false;
 bool light3 = false;
 bool light4 = true;
 
+//Camera controller variables
+float cameraRadius = 15;
+float cameraAngle = 0.0;
+bool camera360 = false;
+
+float firstPersonX = 0.0;
+float firstPersonY = -2.0;
+float firstPersonZ = 10.0;
+float firstPcenterX = 0.0;
+float firstPcenterY = 0.0;
+float firstPcenterZ = 0.0;
+float fpx = 0.0;
+float fpy = 0.0;
+bool cameraFirstPerson = false;
+bool cameraThirdPerson = true;
+
+float sceneZ = 0.0;
+float cameraZ = 0.0;
+
 // Game Controllers
 int score = 0;
-int numOfLives = 3;
+int numOfLives = 5;
 bool won = false;
 bool lose = false;
 bool game = true;
@@ -134,9 +138,9 @@ float rotSun = 0.0;
 float collPlane = 0.0;
 bool scene = false;
 
-GLuint tex;
-GLuint tex2;
-GLuint tex3;
+GLuint space_tex;
+GLuint nitrous_tex;
+GLuint planet_tex;
 GLUquadricObj * qobj;
 char title[] = "3D Model Loader Sample";
 
@@ -146,9 +150,6 @@ Model_3DS model_shield;
 Model_3DS model_asteroid;
 Model_3DS model_winner;
 Model_3DS model_life;
-
-// Textures
-GLTexture tex_ground;
 
 class Vector3f {
 public:
@@ -201,12 +202,6 @@ public:
 		eye.z = 0.0;
 	}
 
-	void frontView() {
-		eye.x = 0.0;
-		eye.y = 0.0;
-		eye.z = 15.0;
-	}
-
 	void topView() {
 		eye.x = 0.0;
 		eye.y = 15.0;
@@ -216,24 +211,36 @@ public:
 	void firstPerson() {
 		eye.x = firstPersonX;
 		eye.y = firstPersonY;
-		eye.z = firstPersonZ - sceneZ;
+		eye.z = firstPersonZ;
 		center.x = firstPcenterX;
 		center.y = firstPcenterY;
-		center.z = firstPcenterZ - sceneZ;
+		center.z = firstPcenterZ;
+	}
+
+	void thirdPerson() {
+		eye.x = 0.0;
+		eye.y = 0.0;
+		eye.z = 15.0;
+		center.x = 0.0;
+		center.y = 0.0;
+		center.z = 0.0;
 	}
 
 	void look() {
 		if (camera360) {
 			eye.x = cameraRadius* cos(DEG2RAD(cameraAngle));
-			eye.y = camy;
+			eye.y = 0.03;
 			eye.z = cameraRadius* sin(DEG2RAD(cameraAngle));
 		}
 		if (cameraFirstPerson) {
 			firstPerson();
 		}
+		if (cameraThirdPerson) {
+			thirdPerson();
+		}
 		gluLookAt(
 			eye.x, eye.y, eye.z - sceneZ,
-			center.x, center.y, center.z,
+			center.x, center.y, center.z - sceneZ,
 			up.x, up.y, up.z
 		);
 	}
@@ -270,9 +277,9 @@ void LoadAssets()
 	model_life.Load("Models/Heart.3ds");
 
 	//Loading texture files
-	loadBMP(&tex, "textures/space.bmp", true);
-	loadBMP(&tex2, "textures/logo.bmp", true);
-	loadBMP(&tex3, "textures/planet_texture.bmp", true);
+	loadBMP(&space_tex, "textures/space.bmp", true);
+	loadBMP(&nitrous_tex, "textures/logo.bmp", true);
+	loadBMP(&planet_tex, "textures/planet_texture.bmp", true);
 }
 
 /* Keyboard Function */
@@ -282,24 +289,28 @@ void Keyboard(unsigned char key, int x, int y) {
 	case 'f':
 		camera360 = false;
 		cameraFirstPerson = false;
-		camera.frontView();
+		cameraThirdPerson = true;
 		break;
 	case 's':
 		camera360 = false;
 		cameraFirstPerson = false;
+		cameraThirdPerson = false;
 		camera.sideView();
 		break;
 	case 't':
 		camera360 = false;
 		cameraFirstPerson = false;
+		cameraThirdPerson = false;
 		camera.topView();
 		break;
 	case 'r':
+		cameraThirdPerson = false;
 		cameraFirstPerson = false;
 		camera360 = true;
 		break;
 	case 'a':
 		camera360 = false;
+		cameraThirdPerson = false;
 		cameraFirstPerson = true;
 		break;
 	}
@@ -309,71 +320,69 @@ void Keyboard(unsigned char key, int x, int y) {
 /* Keyboard Special Function */
 void Special(int key, int x, int y) {
 
-	switch (key) {
-	case GLUT_KEY_LEFT:
-		if (game) {
+	if (game) {
+		switch (key) {
+		case GLUT_KEY_LEFT:
 			if (planeX >= -3.5) {
 				if (nitrousActivated || cameraFirstPerson) {
 					planeX -= 0.2;
-					firstPersonX -= 0.2;
-					firstPcenterX -= 0.2;
+					if (cameraFirstPerson) {
+						firstPersonX -= 0.2;
+						firstPcenterX -= 0.2;
+						fpx -= 0.2;
+					}
 				}
 				else {
 					planeX -= 0.1;
-					firstPersonX -= 0.1;
-					firstPcenterX -= 0.1;
 				}
 			}
-		}
-		break;
-	case GLUT_KEY_RIGHT:
-		if (game) {
+			break;
+		case GLUT_KEY_RIGHT:
 			if (planeX <= 3.5) {
 				if (nitrousActivated || cameraFirstPerson) {
 					planeX += 0.2;
-					firstPersonX += 0.2;
-					firstPcenterX += 0.2;
+					if (cameraFirstPerson) {
+						firstPersonX += 0.2;
+						firstPcenterX += 0.2;
+						fpx += 0.2;
+					}
 				}
 				else {
 					planeX += 0.1;
-					firstPersonX += 0.1;
-					firstPcenterX += 0.1;
 				}
 			}
-		}
-		break;
-	case GLUT_KEY_UP:
-		if (game) {
+			break;
+		case GLUT_KEY_UP:
 			if (planeY <= 6) {
 				if (nitrousActivated || cameraFirstPerson) {
 					planeY += 0.2;
-					firstPersonY += 0.2;
-					firstPcenterY += 0.2;
+					if (cameraFirstPerson) {
+						firstPersonY += 0.2;
+						firstPcenterY += 0.2;
+						fpy += 0.2;
+					}
 				}
 				else {
 					planeY += 0.1;
-					firstPersonY += 0.1;
-					firstPcenterY += 0.1;
 				}
 			}
-		}
-		break;
-	case GLUT_KEY_DOWN:
-		if (game) {
+			break;
+		case GLUT_KEY_DOWN:
 			if (planeY >= -1) {
 				if (nitrousActivated || cameraFirstPerson) {
 					planeY -= 0.2;
-					firstPersonY -= 0.2;
-					firstPcenterY -= 0.2;
+					if (cameraFirstPerson) {
+						firstPersonY -= 0.2;
+						firstPcenterY -= 0.2;
+						fpy -= 0.2;
+					}
 				}
 				else {
 					planeY -= 0.1;
-					firstPersonY -= 0.1;
-					firstPcenterY -= 0.1;
 				}
 			}
+			break;
 		}
-		break;
 	}
 
 	glutPostRedisplay();
@@ -690,12 +699,11 @@ void Anim() {
 			won = true;
 		}
 
-	}
-
-	// checking player number of lives
-	if (numOfLives == 0) {
-		lose = true;
-		game = false;
+		// checking player number of lives
+		if (numOfLives == 0) {
+			lose = true;
+			game = false;
+		}
 	}
 
 	glutPostRedisplay();
@@ -1014,7 +1022,12 @@ void drawLife(float x, float y, float z) {
 void drawLives() {
 	float initialX = 6;
 	for (int i = 0; i < numOfLives; i++) {
-		drawLife(initialX, 6, 8.5 - sceneZ);
+		if (cameraFirstPerson) {
+			drawLife(initialX - 0.5 + fpx, 4 + fpy, 5.5 - sceneZ);
+		}
+		else {
+			drawLife(initialX, 6, 8.5 - sceneZ);
+		}
 		initialX -= 1;
 	}
 }
@@ -1028,7 +1041,7 @@ void drawNitrous() {
 	//glRotated(-90, 0, 1, 0);
 	glRotated(90, 1, 0, 0);
 	qobj = gluNewQuadric();
-	glBindTexture(GL_TEXTURE_2D, tex2);
+	glBindTexture(GL_TEXTURE_2D, nitrous_tex);
 	gluQuadricTexture(qobj, true);
 	gluQuadricNormals(qobj, GL_SMOOTH);
 	gluCylinder(qobj, 0.5, 0.5, 2, 100, 100);
@@ -1041,7 +1054,7 @@ void drawNitrous() {
 	glRotated(180, 0, 1, 0);
 	glRotated(90, 1, 0, 0);
 	qobj = gluNewQuadric();
-	glBindTexture(GL_TEXTURE_2D, tex2);
+	glBindTexture(GL_TEXTURE_2D, nitrous_tex);
 	gluQuadricTexture(qobj, true);
 	gluQuadricNormals(qobj, GL_SMOOTH);
 	gluCylinder(qobj, 0.2, 0.2, 0.5, 100, 100);
@@ -1055,7 +1068,12 @@ void inGame() {
 	glColor3f(1, 1, 1);
 	char* text[10];
 	sprintf((char *)text, "Score: %d", score);
-	print(-5.7, 5.3, 9 - sceneZ, (char *)text);
+	if (cameraFirstPerson) {
+		print(-5.2 + fpx, 3.3 + fpy, 6 - sceneZ, (char *)text);
+	}
+	else {
+		print(-5.7, 5.3, 9 - sceneZ, (char *)text);
+	}
 	glPopMatrix();
 
 	glColor3f(1, 1, 1);
@@ -1154,7 +1172,12 @@ void loseGame() {
 	planeY = 0;
 	glPushMatrix();
 	glColor3f(1, 0, 0);
-	print(-0.2, 1, 13 - sceneZ, "YOU LOST");
+	if (cameraFirstPerson) {
+		print(-0.7 + fpx, 1 + fpy, 3 - sceneZ, "YOU LOST");
+	}
+	else {
+		print(-0.2, 1, 13 - sceneZ, "YOU LOST");
+	}
 	glPopMatrix();
 }
 
@@ -1165,7 +1188,12 @@ void winGame() {
 	planeY = 0;
 	glPushMatrix();
 	glColor3f(1, 0, 0);
-	print(-0.2, 1, 13 - sceneZ, "YOU WON");
+	if (cameraFirstPerson) {
+		print(-0.7 + fpx, 1 + fpy, 3 - sceneZ, "YOU WON");
+	}
+	else {
+		print(-0.2, 1, 13 - sceneZ, "YOU WON");
+	}
 	glPopMatrix();
 
 	glColor3f(1, 1, 1);
@@ -1205,7 +1233,7 @@ void myDisplay(void)
 	//glRotated(-rotSun, 0, 1, 0);
 	glRotated(90, 1, 0, 1);
 	qobj = gluNewQuadric();
-	glBindTexture(GL_TEXTURE_2D, tex);
+	glBindTexture(GL_TEXTURE_2D, space_tex);
 	gluQuadricTexture(qobj, true);
 	gluQuadricNormals(qobj, GL_SMOOTH);
 	gluSphere(qobj, 25, 100, 100);
@@ -1216,7 +1244,7 @@ void myDisplay(void)
 	glTranslated(0, 0, -22.5);
 	glRotated(rotSun, 0, 1, 0);
 	qobj = gluNewQuadric();
-	glBindTexture(GL_TEXTURE_2D, tex3);
+	glBindTexture(GL_TEXTURE_2D, planet_tex);
 	gluQuadricTexture(qobj, true);
 	gluQuadricNormals(qobj, GL_SMOOTH);
 	gluSphere(qobj, 5, 100, 100);
