@@ -261,7 +261,6 @@ float* bezier(float t, float* p0, float* p1, float* p2, float* p3)
 	return res;
 }
 
-
 /* Assets Loading Function */
 void LoadAssets()
 {
@@ -386,7 +385,7 @@ void setupCamera() {
 	camera.look();
 }
 
-//Lighting configuratio for planet
+/* Lighting configuratio for planet */
 void PlanetLights() {
 
 	glEnable(GL_LIGHTING);
@@ -442,6 +441,7 @@ void PlanetLights() {
 	glLightfv(GL_LIGHT4, GL_SPOT_DIRECTION, l4Direction);
 
 }
+
 /* Lighting Configuration Function */
 void InitLightSource()
 {
