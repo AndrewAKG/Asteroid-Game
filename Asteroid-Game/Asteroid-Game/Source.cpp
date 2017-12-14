@@ -28,13 +28,10 @@ float cameraZ = -40.0;
 // Plane Controller variables
 float planeX = 0.0;
 float planeY = 0.0;
-float planeAngX = 0.0;
-float planeAngY = 0.0;
-float planeAngZ = 0.0;
 
 // All asteroids controller variables
 float asteroidScale = 0.03;
-float seconds = 0;
+int seconds = 0;
 
 // First asteroid controller variables
 bool asteroid1 = true;
@@ -83,7 +80,6 @@ float a5x = (rand() % 7) - 3;
 float a5y = 0.0;
 float a5z = -30.0;
 
-
 //Sixth asteroid controller variables
 bool asteroid6 = true;
 float a6t = 0.0;
@@ -117,18 +113,15 @@ float lt = 0;
 float ly = 0;
 float lx = 0;
 bool life = true;
-float l0[2];
-float l1[2];
-float l2[2];
-float l3[2];
 
 // Light controllers
 float cutOff = 70.0;
-float exponent = 90.0;
+float exponent = 120.0;
+float lightsAngle = 0.0;
 bool cutOffSwitch = false;
 bool light1 = true;
-bool light2 = true;
-bool light3 = true;
+bool light2 = false;
+bool light3 = false;
 bool light4 = true;
 
 // Game Controllers
@@ -146,12 +139,6 @@ GLuint tex2;
 GLuint tex3;
 GLUquadricObj * qobj;
 char title[] = "3D Model Loader Sample";
-
-// 3D Projection Options
-GLdouble fovy = 45.0;
-GLdouble aspectRatio = (GLdouble)WIDTH / (GLdouble)HEIGHT;
-GLdouble zNear = 0.1;
-GLdouble zFar = 100;
 
 // Model Variables
 Model_3DS model_plane2;
@@ -274,14 +261,6 @@ float* bezier(float t, float* p0, float* p1, float* p2, float* p3)
 	return res;
 }
 
-/* Drawing a circle Function */
-void drawCircle(float x, float y, float z, float inr, float outr) {
-	glPushMatrix();
-	glTranslatef(x, y, z);
-	GLUquadric *quadObj = gluNewQuadric();
-	gluDisk(quadObj, inr, outr, 50, 50);
-	glPopMatrix();
-}
 
 /* Assets Loading Function */
 void LoadAssets()
@@ -341,8 +320,6 @@ void Special(int key, int x, int y) {
 				}
 			}
 		}
-		//planeAngY += 0.1;
-		//planeAngZ += 0.5;
 		break;
 	case GLUT_KEY_RIGHT:
 		if (game) {
@@ -359,8 +336,6 @@ void Special(int key, int x, int y) {
 				}
 			}
 		}
-		//planeAngY -= 0.1;
-		//planeAngZ -= 0.5;
 		break;
 	case GLUT_KEY_UP:
 		if (game) {
@@ -377,7 +352,6 @@ void Special(int key, int x, int y) {
 				}
 			}
 		}
-		//planeAngX -= 0.7;
 		break;
 	case GLUT_KEY_DOWN:
 		if (game) {
@@ -393,8 +367,7 @@ void Special(int key, int x, int y) {
 					firstPcenterY -= 0.1;
 				}
 			}
-		}
-		//	planeAngX += 0.7;
+		}	
 		break;
 	}
 
@@ -413,6 +386,62 @@ void setupCamera() {
 	camera.look();
 }
 
+//Lighting configuratio for planet
+void PlanetLights() {
+
+	glEnable(GL_LIGHTING);
+	glEnable(GL_LIGHT1);
+
+	GLfloat l1Diffuse[] = { 1.0f, 1.0f, 1.0f, 1.0f };
+	GLfloat l1Position[] = { 0.0f, 15.0f, -20.0f, light1 };
+	GLfloat l1Direction[] = { 0.0, -1.0, 0.0 };
+
+	glLightfv(GL_LIGHT1, GL_DIFFUSE, l1Diffuse);
+	glLightfv(GL_LIGHT1, GL_POSITION, l1Position);
+	glLightf(GL_LIGHT1, GL_SPOT_CUTOFF, cutOff);
+	glLightf(GL_LIGHT1, GL_SPOT_EXPONENT, exponent);
+	glLightfv(GL_LIGHT1, GL_SPOT_DIRECTION, l1Direction);
+
+
+	glEnable(GL_LIGHT2);
+
+	GLfloat l2Diffuse[] = { 1.0f, 1.0f, 1.0f, 1.0f };
+	GLfloat l2Position[] = { 15.0f, 0.0f, -20.0f, light2 };
+	GLfloat l2Direction[] = { -1.0, 0.0, 0.0 };
+
+	glLightfv(GL_LIGHT2, GL_DIFFUSE, l2Diffuse);
+	glLightfv(GL_LIGHT2, GL_POSITION, l2Position);
+	glLightf(GL_LIGHT2, GL_SPOT_CUTOFF, cutOff);
+	glLightf(GL_LIGHT2, GL_SPOT_EXPONENT, exponent);
+	glLightfv(GL_LIGHT2, GL_SPOT_DIRECTION, l2Direction);
+
+
+	glEnable(GL_LIGHT3);
+
+	GLfloat l3Diffuse[] = { 1.0f, 1.0f, 1.0f, 1.0f };
+	GLfloat l3Position[] = { -15.0f, 0.0f, -20.0f, light3 };
+	GLfloat l3Direction[] = { 1.0, 0.0, 0.0 };
+
+	glLightfv(GL_LIGHT3, GL_DIFFUSE, l3Diffuse);
+	glLightfv(GL_LIGHT3, GL_POSITION, l3Position);
+	glLightf(GL_LIGHT3, GL_SPOT_CUTOFF, cutOff);
+	glLightf(GL_LIGHT3, GL_SPOT_EXPONENT, exponent);
+	glLightfv(GL_LIGHT3, GL_SPOT_DIRECTION, l3Direction);
+
+
+	glEnable(GL_LIGHT4);
+
+	GLfloat l4Diffuse[] = { 1.0f, 1.0f, 1.0f, 1.0f };
+	GLfloat l4Position[] = { 0.0f, -15.0f, -20.0f, light4 };
+	GLfloat l4Direction[] = { 0.0, 1.0, 0.0 };
+
+	glLightfv(GL_LIGHT4, GL_DIFFUSE, l4Diffuse);
+	glLightfv(GL_LIGHT4, GL_POSITION, l4Position);
+	glLightf(GL_LIGHT4, GL_SPOT_CUTOFF, cutOff);
+	glLightf(GL_LIGHT4, GL_SPOT_EXPONENT, exponent);
+	glLightfv(GL_LIGHT4, GL_SPOT_DIRECTION, l4Direction);
+
+}
 /* Lighting Configuration Function */
 void InitLightSource()
 {
@@ -423,59 +452,14 @@ void InitLightSource()
 	glEnable(GL_LIGHT0);
 
 	GLfloat specular0[] = { 1.0f, 1.0f, 1.0f, 1.0f };
-	GLfloat light_position0[] = { 0.0f, -10.0f, 10.0f, 1.0f };
-	GLfloat l0Direction[] = { 0.0, 2.0, 0.0 };
+	GLfloat light_position0[] = { 0.0f, 10.0f, -20.0f, 1.0f };
 	glLightfv(GL_LIGHT0, GL_SPECULAR, specular0);
 	glLightfv(GL_LIGHT0, GL_POSITION, light_position0);
-	glLightfv(GL_LIGHT0, GL_SPOT_DIRECTION, l0Direction);
 
 
 	GLfloat lightIntensity0[] = { 0.4, 0.4, 0.4, 1.0f };
 	glLightfv(GL_LIGHT0, GL_AMBIENT, lightIntensity0);
 
-	glEnable(GL_LIGHT1);
-
-	GLfloat l1Diffuse[] = { 1.0f, 1.0f, 1.0f, 1.0f };
-	GLfloat l1Position[] = { 0.0f, 15.0f, -20.0f, light1 };
-	GLfloat l1Direction[] = { 0.0, -1.0, 0.0 };
-	glLightfv(GL_LIGHT1, GL_DIFFUSE, l1Diffuse);
-	glLightfv(GL_LIGHT1, GL_POSITION, l1Position);
-	glLightf(GL_LIGHT1, GL_SPOT_CUTOFF, cutOff);
-	glLightf(GL_LIGHT1, GL_SPOT_EXPONENT, exponent);
-	glLightfv(GL_LIGHT1, GL_SPOT_DIRECTION, l1Direction);
-
-	glEnable(GL_LIGHT2);
-
-	GLfloat l2Diffuse[] = { 1.0f, 1.0f, 1.0f, 1.0f };
-	GLfloat l2Position[] = { 15.0f, 0.0f, -20.0f, light2 };
-	GLfloat l2Direction[] = { -1.0, 0.0, 0.0 };
-	glLightfv(GL_LIGHT2, GL_DIFFUSE, l2Diffuse);
-	glLightfv(GL_LIGHT2, GL_POSITION, l2Position);
-	glLightf(GL_LIGHT2, GL_SPOT_CUTOFF, cutOff);
-	glLightf(GL_LIGHT2, GL_SPOT_EXPONENT, exponent);
-	glLightfv(GL_LIGHT2, GL_SPOT_DIRECTION, l2Direction);
-
-	glEnable(GL_LIGHT3);
-
-	GLfloat l3Diffuse[] = { 1.0f, 1.0f, 1.0f, 1.0f };
-	GLfloat l3Position[] = { -15.0f, 0.0f, -20.0f, light3 };
-	GLfloat l3Direction[] = { 1.0, 0.0, 0.0 };
-	glLightfv(GL_LIGHT3, GL_DIFFUSE, l3Diffuse);
-	glLightfv(GL_LIGHT3, GL_POSITION, l3Position);
-	glLightf(GL_LIGHT3, GL_SPOT_CUTOFF, cutOff);
-	glLightf(GL_LIGHT3, GL_SPOT_EXPONENT, exponent);
-	glLightfv(GL_LIGHT3, GL_SPOT_DIRECTION, l3Direction);
-
-	glEnable(GL_LIGHT4);
-
-	GLfloat l4Diffuse[] = { 1.0f, 1.0f, 1.0f, 1.0f };
-	GLfloat l4Position[] = { 0.0f, -15.0f, -20.0f, light4 };
-	GLfloat l4Direction[] = { 0.0, 1.0, 0.0 };
-	glLightfv(GL_LIGHT4, GL_DIFFUSE, l4Diffuse);
-	glLightfv(GL_LIGHT4, GL_POSITION, l4Position);
-	glLightf(GL_LIGHT4, GL_SPOT_CUTOFF, cutOff);
-	glLightf(GL_LIGHT4, GL_SPOT_EXPONENT, exponent);
-	glLightfv(GL_LIGHT4, GL_SPOT_DIRECTION, l4Direction);
 }
 
 /* Material Configuration Function */
@@ -725,16 +709,20 @@ void Anim() {
 
 /* Timer Function */
 void Timer(int value) {
-	rotSun++;
+	lightsAngle += 0.3;
+	//rotSun++;
 	seconds++;
-	score++;
+
+	if (seconds % 30 == 0) {
+		score++;
+	}
 	/************************CAMERA ANIMATION***************************/
 	if (camera360) {
 		cameraAngle++;
 	}
 
 	/************************LIGHT ANIMATION****************************/
-	if (cutOff <= 0) {
+	/*if (cutOff <= 0) {
 		cutOffSwitch = true;
 	}
 	if (cutOff >= 60) {
@@ -745,12 +733,14 @@ void Timer(int value) {
 	}
 	else {
 		cutOff -= 0.1;
-	}
+	}*/
 
-	light1 = !light1;
-	light2 = !light2;
-	light3 = !light3;
-	light4 = !light4;
+	if (seconds % 30 == 0) {
+		light1 = !light1;
+		light2 = !light2;
+		light3 = !light3;
+		light4 = !light4;
+	}
 
 	/***********************FIRST ASTEROID ANIMATION**********************/
 	if (seconds >= 0) {
@@ -1198,6 +1188,13 @@ void myDisplay(void)
 	setupCamera();
 	InitLightSource();
 	InitMaterial();
+	glPushMatrix();
+	glTranslated(0, 0, -20);
+	glRotated(lightsAngle, 0, 0, 1);
+	glTranslated(0, 0, 20);
+	PlanetLights();
+	glPopMatrix();
+
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	//space box
@@ -1226,40 +1223,10 @@ void myDisplay(void)
 	gluDeleteQuadric(qobj);
 	glPopMatrix();
 
-	//space box
-	//glPushMatrix();
-	//glTranslated(0, 0, sceneZ);
-	//qobj = gluNewQuadric();
-	////glRotated(90, 1, 0, 0);
-	//glBindTexture(GL_TEXTURE_2D, tex);
-	//gluQuadricTexture(qobj, true);
-	//gluQuadricNormals(qobj, GL_SMOOTH);
-	//gluCylinder(qobj, 25, 25, 100, 100, 100);
-	//gluDeleteQuadric(qobj);
-	//glPopMatrix();
-
-	//space box
-	//glPushMatrix();
-	//glTranslated(0, 0, sceneZ);
-	//glTranslated(0, 0, -100);
-	//qobj = gluNewQuadric();
-	////glRotated(90, 1, 0, 0);
-	//glBindTexture(GL_TEXTURE_2D, tex);
-	//gluQuadricTexture(qobj, true);
-	//gluQuadricNormals(qobj, GL_SMOOTH);
-	//gluCylinder(qobj, 25, 25, 100, 100, 100);
-	//gluDeleteQuadric(qobj);
-	//glPopMatrix();
-
 	// large plane model
 	glPushMatrix();
-	//glTranslated(0, 0, sceneZ);
 	glTranslated(planeX, planeY, 0);
-	glRotated(planeAngX, 1, 0, 0);
-	glRotated(planeAngY, 0, 1, 0);
-	glRotated(planeAngZ, 0, 0, 1);
 	glTranslatef(0, -3, 10);
-	//glRotated(-90, 0, 1, 0);
 	glScalef(0.016, 0.016, 0.016);
 	model_plane2.Draw();
 	glPopMatrix();
@@ -1356,19 +1323,6 @@ void main(int argc, char** argv)
 
 	a63[0] = 0.0;
 	a63[1] = 0.0;
-
-	// Life beziar
-	l0[0] = 0.0;
-	l0[1] = 0.0;
-
-	l1[0] = -5.0;
-	l1[1] = 3.0;
-
-	l2[0] = 5.0;
-	l2[1] = 3.0;
-
-	l3[0] = 0.0;
-	l3[1] = 0.0;
 
 	glutMainLoop();
 }
