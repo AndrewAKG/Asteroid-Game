@@ -1,6 +1,9 @@
 #include "TextureBuilder.h"
 #include "Model_3DS.h"
 #include "GLTexture.h"
+#include <Windows.h>
+#include <iostream>
+#include <MMSystem.h>
 #include <glut.h>
 #include <cmath>
 
@@ -103,6 +106,7 @@ bool life = true;
 float cutOff = 70.0;
 float exponent = 120.0;
 float lightsAngle = 0.0;
+int lightSwitch = 0.0;
 bool cutOffSwitch = false;
 bool light1 = true;
 bool light2 = false;
@@ -128,6 +132,10 @@ bool cameraThirdPerson = true;
 float sceneZ = 0.0;
 float cameraZ = 0.0;
 
+// Sound Controllers
+int expSeconds = 310;
+bool explosion = false;
+
 // Game Controllers
 int score = 0;
 int numOfLives = 5;
@@ -137,18 +145,19 @@ bool game = true;
 float rotSun = 0.0;
 float collPlane = 0.0;
 bool scene = false;
+float inc = 0.0;
 
 GLuint space_tex;
 GLuint nitrous_tex;
 GLuint planet_tex;
+GLuint sun_tex;
 GLUquadricObj * qobj;
-char title[] = "3D Model Loader Sample";
+char title[] = "Final Destination";
 
 // Model Variables
-Model_3DS model_plane2;
+Model_3DS model_plane;
 Model_3DS model_shield;
 Model_3DS model_asteroid;
-Model_3DS model_winner;
 Model_3DS model_life;
 
 class Vector3f {
@@ -270,13 +279,13 @@ float* bezier(float t, float* p0, float* p1, float* p2, float* p3)
 void LoadAssets()
 {
 	//Loading Model files
-	model_plane2.Load("Models/plane2/plane2.3ds");
+	model_plane.Load("Models/plane2/plane2.3ds");
 	model_shield.Load("Models/shield/shield2/CaptainAmericasShield.3ds");
 	model_asteroid.Load("Models/asteroid-3DS.3DS");
-	model_winner.Load("Models/trophy.3ds");
 	model_life.Load("Models/Heart.3ds");
 
 	//Loading texture files
+	loadBMP(&sun_tex, "textures/sunset.bmp", true);
 	loadBMP(&space_tex, "textures/space.bmp", true);
 	loadBMP(&nitrous_tex, "textures/logo.bmp", true);
 	loadBMP(&planet_tex, "textures/planet_texture.bmp", true);
@@ -326,14 +335,15 @@ void Special(int key, int x, int y) {
 			if (planeX >= -3.5) {
 				if (nitrousActivated || cameraFirstPerson) {
 					planeX -= 0.2;
-					if (cameraFirstPerson) {
-						firstPersonX -= 0.2;
-						firstPcenterX -= 0.2;
-						fpx -= 0.2;
-					}
+					firstPersonX -= 0.2;
+					firstPcenterX -= 0.2;
+					fpx -= 0.2;
 				}
 				else {
 					planeX -= 0.1;
+					firstPersonX -= 0.1;
+					firstPcenterX -= 0.1;
+					fpx -= 0.1;
 				}
 			}
 			break;
@@ -341,14 +351,15 @@ void Special(int key, int x, int y) {
 			if (planeX <= 3.5) {
 				if (nitrousActivated || cameraFirstPerson) {
 					planeX += 0.2;
-					if (cameraFirstPerson) {
-						firstPersonX += 0.2;
-						firstPcenterX += 0.2;
-						fpx += 0.2;
-					}
+					firstPersonX += 0.2;
+					firstPcenterX += 0.2;
+					fpx += 0.2;
 				}
 				else {
 					planeX += 0.1;
+					firstPersonX += 0.1;
+					firstPcenterX += 0.1;
+					fpx += 0.1;
 				}
 			}
 			break;
@@ -356,14 +367,15 @@ void Special(int key, int x, int y) {
 			if (planeY <= 6) {
 				if (nitrousActivated || cameraFirstPerson) {
 					planeY += 0.2;
-					if (cameraFirstPerson) {
-						firstPersonY += 0.2;
-						firstPcenterY += 0.2;
-						fpy += 0.2;
-					}
+					firstPersonY += 0.2;
+					firstPcenterY += 0.2;
+					fpy += 0.2;
 				}
 				else {
 					planeY += 0.1;
+					firstPersonY += 0.1;
+					firstPcenterY += 0.1;
+					fpy += 0.1;
 				}
 			}
 			break;
@@ -371,14 +383,15 @@ void Special(int key, int x, int y) {
 			if (planeY >= -1) {
 				if (nitrousActivated || cameraFirstPerson) {
 					planeY -= 0.2;
-					if (cameraFirstPerson) {
-						firstPersonY -= 0.2;
-						firstPcenterY -= 0.2;
-						fpy -= 0.2;
-					}
+					firstPersonY -= 0.2;
+					firstPcenterY -= 0.2;
+					fpy -= 0.2;
 				}
 				else {
 					planeY -= 0.1;
+					firstPersonY -= 0.1;
+					firstPcenterY -= 0.1;
+					fpy -= 0.1;
 				}
 			}
 			break;
@@ -393,7 +406,6 @@ void setupCamera() {
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
 	gluPerspective(100, 1000 / 700, 0.001, 100);
-	//	glOrtho(-500, 500, -350, 350, -800, 800);
 
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
@@ -404,9 +416,10 @@ void setupCamera() {
 void PlanetLights() {
 
 	glEnable(GL_LIGHTING);
+
 	glEnable(GL_LIGHT1);
 
-	GLfloat l1Diffuse[] = { 1.0f, 1.0f, 1.0f, 1.0f };
+	GLfloat l1Diffuse[] = { 10.0f, 10.0f, 10.0f, 1.0f };
 	GLfloat l1Position[] = { 0.0f, 15.0f, -20.0f, light1 };
 	GLfloat l1Direction[] = { 0.0, -1.0, 0.0 };
 
@@ -419,7 +432,7 @@ void PlanetLights() {
 
 	glEnable(GL_LIGHT2);
 
-	GLfloat l2Diffuse[] = { 1.0f, 1.0f, 1.0f, 1.0f };
+	GLfloat l2Diffuse[] = { 10.0f, 10.0f, 10.0f, 1.0f };
 	GLfloat l2Position[] = { 15.0f, 0.0f, -20.0f, light2 };
 	GLfloat l2Direction[] = { -1.0, 0.0, 0.0 };
 
@@ -432,7 +445,7 @@ void PlanetLights() {
 
 	glEnable(GL_LIGHT3);
 
-	GLfloat l3Diffuse[] = { 1.0f, 1.0f, 1.0f, 1.0f };
+	GLfloat l3Diffuse[] = { 10.0f, 10.0f, 10.0f, 1.0f };
 	GLfloat l3Position[] = { -15.0f, 0.0f, -20.0f, light3 };
 	GLfloat l3Direction[] = { 1.0, 0.0, 0.0 };
 
@@ -445,7 +458,7 @@ void PlanetLights() {
 
 	glEnable(GL_LIGHT4);
 
-	GLfloat l4Diffuse[] = { 1.0f, 1.0f, 1.0f, 1.0f };
+	GLfloat l4Diffuse[] = { 10.0f, 10.0f, 10.0f, 10.0f };
 	GLfloat l4Position[] = { 0.0f, -15.0f, -20.0f, light4 };
 	GLfloat l4Direction[] = { 0.0, 1.0, 0.0 };
 
@@ -531,6 +544,10 @@ void Anim() {
 				printf("%s\n", "d5l");
 				asteroid1 = false;
 				a1z = -30;
+				if (!(numOfLives == 0)) {
+					explosion = true;
+					PlaySound("explosion.wav", NULL, SND_ASYNC | SND_FILENAME);
+				}
 				if (!shieldActivated) {
 					numOfLives--;
 					score -= 20;
@@ -548,6 +565,10 @@ void Anim() {
 				printf("%s\n", "d5l asr");
 				asteroid2 = false;
 				a2z = -30;
+				if (!(numOfLives == 0)) {
+					explosion = true;
+					PlaySound("explosion.wav", NULL, SND_ASYNC | SND_FILENAME);
+				}
 				if (!shieldActivated) {
 					numOfLives--;
 					score -= 20;
@@ -565,6 +586,10 @@ void Anim() {
 				printf("%s\n", "d5l as3");
 				asteroid3 = false;
 				a3z = -30;
+				if (!(numOfLives == 0)) {
+					explosion = true;
+					PlaySound("explosion.wav", NULL, SND_ASYNC | SND_FILENAME);
+				}
 				if (!shieldActivated) {
 					numOfLives--;
 					score -= 20;
@@ -582,6 +607,10 @@ void Anim() {
 				printf("%s\n", "d5l as4");
 				asteroid4 = false;
 				a4z = -30;
+				if (!(numOfLives == 0)) {
+					explosion = true;
+					PlaySound("explosion.wav", NULL, SND_ASYNC | SND_FILENAME);
+				}
 				if (!shieldActivated) {
 					numOfLives--;
 					score -= 20;
@@ -599,6 +628,10 @@ void Anim() {
 				printf("%s\n", "d5l as5");
 				asteroid5 = false;
 				a5z = -30;
+				if (!(numOfLives == 0)) {
+					explosion = true;
+					PlaySound("explosion.wav", NULL, SND_ASYNC | SND_FILENAME);
+				}
 				if (!shieldActivated) {
 					numOfLives--;
 					score -= 20;
@@ -616,6 +649,10 @@ void Anim() {
 				printf("%s\n", "d5l as6");
 				asteroid6 = false;
 				a6z = -30;
+				if (!(numOfLives == 0)) {
+					explosion = true;
+					PlaySound("explosion.wav", NULL, SND_ASYNC | SND_FILENAME);
+				}
 				if (!shieldActivated) {
 					numOfLives--;
 					score -= 20;
@@ -633,7 +670,9 @@ void Anim() {
 				printf("%s\n", "d5l life");
 				life = false;
 				lz = -30;
-				numOfLives++;
+				if (numOfLives < 5) {
+					numOfLives++;
+				}
 			}
 		}
 
@@ -670,8 +709,12 @@ void Anim() {
 		// shield count down
 		if (shieldActivated) {
 			if (scene) {
-				sceneZ += 7;
-				scene = false;
+				inc += 0.1;
+				sceneZ += 0.1;
+				if (inc >= 7) {
+					inc = 0.0;
+					scene = false;
+				}
 			}
 			shieldCountDown--;
 			if (shieldCountDown <= 0) {
@@ -683,8 +726,12 @@ void Anim() {
 		// nitrous count down
 		if (nitrousActivated) {
 			if (scene) {
-				sceneZ += 7;
-				scene = false;
+				inc += 0.1;
+				sceneZ += 0.1;
+				if (inc >= 7) {
+					inc = 0.0;
+					scene = false;
+				}
 			}
 			nitrousCountDown--;
 			if (nitrousCountDown <= 0) {
@@ -697,12 +744,14 @@ void Anim() {
 		if (7.8 - sceneZ <= -20) {
 			game = false;
 			won = true;
+			PlaySound("victory.wav", NULL, SND_ASYNC | SND_FILENAME | SND_LOOP);
 		}
 
 		// checking player number of lives
 		if (numOfLives == 0) {
-			lose = true;
 			game = false;
+			lose = true;
+			PlaySound("Fail.wav", NULL, SND_ASYNC | SND_FILENAME | SND_LOOP);
 		}
 	}
 
@@ -712,6 +761,7 @@ void Anim() {
 /* Timer Function */
 void Timer(int value) {
 	lightsAngle += 0.3;
+	lightSwitch++;
 	rotSun++;
 	seconds++;
 
@@ -731,27 +781,49 @@ void Timer(int value) {
 	}
 
 	/************************LIGHT ANIMATION****************************/
-	/*if (cutOff <= 0) {
-	cutOffSwitch = true;
+	if (lightSwitch <= 500) {
+		if (lightSwitch % 30 == 0) {
+			light1 = !light1;
+			light2 = !light2;
+			light3 = !light3;
+			light4 = !light4;
+		}
 	}
-	if (cutOff >= 60) {
-	cutOffSwitch = false;
-	}
-	if (cutOffSwitch) {
-	cutOff += 0.1;
+	else if (lightSwitch <= 1000) {
+		if (cutOff <= 0) {
+			cutOffSwitch = true;
+		}
+		if (cutOff >= 60) {
+			cutOffSwitch = false;
+		}
+		if (cutOffSwitch) {
+			cutOff += 0.1;
+		}
+		else {
+			cutOff -= 0.1;
+		}
 	}
 	else {
-	cutOff -= 0.1;
-	}*/
-
-	if (seconds % 30 == 0) {
 		light1 = !light1;
 		light2 = !light2;
 		light3 = !light3;
 		light4 = !light4;
 	}
 
+	if (lightSwitch >= 1500) {
+		lightSwitch = 0.0;
+	}
+
 	if (game) {
+
+		if (explosion) {
+			expSeconds--;
+			if (expSeconds <= 0) {
+				explosion = false;
+				expSeconds = 150;
+				PlaySound("game.wav", NULL, SND_ASYNC | SND_FILENAME | SND_LOOP);
+			}
+		}
 		/***********************FIRST ASTEROID ANIMATION**********************/
 		if (seconds >= 0) {
 			if (asteroid1) {
@@ -1014,7 +1086,7 @@ void drawLife(float x, float y, float z) {
 	glRotated(90, 1, 0, 0);
 	glRotated(30, 0, 0, 1);
 	glScalef(0.004, 0.004, 0.004);
-	model_plane2.Draw();
+	model_plane.Draw();
 	glPopMatrix();
 }
 
@@ -1037,8 +1109,6 @@ void drawNitrous() {
 	glPushMatrix();
 	glColor3f(1, 1, 1);
 	glRotated(180, 0, 1, 0);
-	//glTranslated(2, 0.5, -3);
-	//glRotated(-90, 0, 1, 0);
 	glRotated(90, 1, 0, 0);
 	qobj = gluNewQuadric();
 	glBindTexture(GL_TEXTURE_2D, nitrous_tex);
@@ -1200,11 +1270,10 @@ void winGame() {
 
 	//Winner
 	//glPushMatrix();
-	//glColor3f(0.854, 0.647, 0.125);
-	//glTranslated(-0.7, 0, 0);
+	//glTranslated(-0.7, 2.4, 0);
 	////glRotated(180, 0, 1, 0);
-	//glRotatef(90, 1, 0, 0);
-	//glScaled(0.05, 0.05, 0.05);
+	////glRotatef(90, 1, 0, 0);
+	//glScaled(0.3, 0.3, 0.3);
 	//model_winner.Draw();
 	//glPopMatrix();
 
@@ -1229,11 +1298,10 @@ void myDisplay(void)
 
 	//space box
 	glPushMatrix();
-	//glTranslated(0, 0, -80);
-	//glRotated(-rotSun, 0, 1, 0);
+	glRotated(-rotSun, 0, 1, 0);
 	glRotated(90, 1, 0, 1);
 	qobj = gluNewQuadric();
-	glBindTexture(GL_TEXTURE_2D, space_tex);
+	glBindTexture(GL_TEXTURE_2D, sun_tex);
 	gluQuadricTexture(qobj, true);
 	gluQuadricNormals(qobj, GL_SMOOTH);
 	gluSphere(qobj, 25, 100, 100);
@@ -1252,32 +1320,28 @@ void myDisplay(void)
 	glPopMatrix();
 
 	//space cylinder1
-	//glPushMatrix();
-	//glTranslated(0, 0, -sceneZ);
-	//glTranslated(0, 0, cameraZ);
-	//glTranslated(0, 0, -25);
-	//qobj = gluNewQuadric();
-	////glRotated(90, 1, 0, 0);
-	//glBindTexture(GL_TEXTURE_2D, tex);
-	//gluQuadricTexture(qobj, true);
-	//gluQuadricNormals(qobj, GL_SMOOTH);
-	//gluCylinder(qobj, 15, 15, 50, 100, 100);
-	//gluDeleteQuadric(qobj);
-	//glPopMatrix();
+	glPushMatrix();
+	glTranslated(0, 0, cameraZ);
+	glTranslated(0, 0, -25);
+	qobj = gluNewQuadric();
+	glBindTexture(GL_TEXTURE_2D, space_tex);
+	gluQuadricTexture(qobj, true);
+	gluQuadricNormals(qobj, GL_SMOOTH);
+	gluCylinder(qobj, 15, 15, 50, 100, 100);
+	gluDeleteQuadric(qobj);
+	glPopMatrix();
 
 	//space cylinder2
-	//glPushMatrix();
-	//glTranslated(0, 0, -sceneZ);
-	//glTranslated(0, 0, cameraZ);
-	//glTranslated(0, 0, -75);
-	//qobj = gluNewQuadric();
-	////glRotated(90, 1, 0, 0);
-	//glBindTexture(GL_TEXTURE_2D, tex);
-	//gluQuadricTexture(qobj, true);
-	//gluQuadricNormals(qobj, GL_SMOOTH);
-	//gluCylinder(qobj, 15, 15, 50, 100, 100);
-	//gluDeleteQuadric(qobj);
-	//glPopMatrix();
+	glPushMatrix();
+	glTranslated(0, 0, cameraZ);
+	glTranslated(0, 0, -75);
+	qobj = gluNewQuadric();
+	glBindTexture(GL_TEXTURE_2D, space_tex);
+	gluQuadricTexture(qobj, true);
+	gluQuadricNormals(qobj, GL_SMOOTH);
+	gluCylinder(qobj, 15, 15, 50, 100, 100);
+	gluDeleteQuadric(qobj);
+	glPopMatrix();
 
 	// large plane model
 	glPushMatrix();
@@ -1285,7 +1349,7 @@ void myDisplay(void)
 	glTranslated(planeX, planeY, 0);
 	glTranslatef(0, -3, 10);
 	glScalef(0.016, 0.016, 0.016);
-	model_plane2.Draw();
+	model_plane.Draw();
 	glPopMatrix();
 
 	if (game) {
@@ -1307,6 +1371,8 @@ void myDisplay(void)
 void main(int argc, char** argv)
 {
 	glutInit(&argc, argv);
+
+	PlaySound("game.wav", NULL, SND_ASYNC | SND_FILENAME | SND_LOOP);
 
 	glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB | GLUT_DEPTH);
 
